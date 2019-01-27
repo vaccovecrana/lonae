@@ -1,0 +1,62 @@
+buildscript {
+  repositories { jcenter() }
+  dependencies { classpath "com.github.ben-manes:gradle-versions-plugin:0.20.0" }
+}
+
+plugins { id "com.jfrog.bintray" version "1.8.4" }
+
+apply plugin: 'com.github.ben-manes.versions'
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+repositories { jcenter() }
+
+group 'io.vacco.myrmica'
+version 0.01
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+  compile "org.slf4j:slf4j-api:1.7.25"
+  compile "org.jooq:joox-java-6:1.6.0"
+
+  testCompile "org.slf4j:slf4j-simple:1.7.25"
+  testCompile "junit:junit:4.12"
+  testCompile "io.github.j8spec:j8spec:3.0.0"
+}
+
+task sourceJar(type: Jar, dependsOn: classes) { from sourceSets.main.allSource }
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+      artifact sourceJar { classifier "sources" }
+    }
+  }
+}
+
+bintray {
+  user = System.getenv('BINTRAY_USER')
+  key = System.getenv('BINTRAY_KEY')
+  publications = ['mavenJava']
+  pkg {
+    repo = 'io.vacco.myrica'
+    name = project.name
+    userOrg = 'vaccovecrana'
+    licenses = ['Apache-2.0']
+    websiteUrl = 'https://github.com/vaccovecrana/myrica'
+    issueTrackerUrl = 'https://github.com/vaccovecrana/myrica/issues'
+    vcsUrl = 'https://github.com/vaccovecrana/myrica.git'
+    labels = ['maven', 'dependency', 'resolver']
+    publicDownloadNumbers = true
+    version {
+      name = project.version
+      desc = 'A lightweight Maven artifact and dependency resolver.'
+      gpg { sign = true }
+    }
+  }
+}
+
+wrapper { gradleVersion = "4.10.2" }
