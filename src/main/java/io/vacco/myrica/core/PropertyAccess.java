@@ -1,7 +1,9 @@
 package io.vacco.myrica.core;
 
+import org.joox.Match;
 import java.util.*;
 import java.util.regex.*;
+import static java.util.Objects.requireNonNull;
 
 public class PropertyAccess {
 
@@ -49,4 +51,11 @@ public class PropertyAccess {
     return resolved;
   }
 
+  public static Map<String, String> loadProperties(Module m) {
+    requireNonNull(m);
+    Map<String, String> result = new TreeMap<>();
+    Match props = m.getPom().child("properties");
+    props.children().forEach(prop -> result.put(prop.getTagName(), prop.getTextContent()));
+    return result;
+  }
 }

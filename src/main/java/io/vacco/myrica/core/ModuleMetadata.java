@@ -10,11 +10,12 @@ import static io.vacco.myrica.core.PropertyAccess.*;
 
 public class ModuleMetadata implements Comparable<ModuleMetadata> {
 
-  private static final String MOD_FMT = "(c: [%s], s: [%s])";
+  private static final String MOD_FMT = "(@[%s], scope: [%s], classifier: [%s])";
 
   private final String groupId;
   private final String artifactId;
   private final String version;
+  private final String classifier;
   private final String scope;
   private final boolean optional;
   private final Set<ModuleMetadata> exclusions = new TreeSet<>();
@@ -25,6 +26,7 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
     this.groupId = dereference(pomXml.child("groupId").text(), resolvedProperties);
     this.artifactId = dereference(pomXml.child("artifactId").text(), resolvedProperties);
     this.version = dereference(pomXml.child("version").text(), resolvedProperties);
+    this.classifier = dereference(pomXml.child("classifier").text(), resolvedProperties);
     this.scope = pomXml.child("scope").text();
     this.optional = pomXml.child("optional").isNotEmpty();
     this.exclusions.addAll(pomXml.child("exclusions").children("exclusion")
@@ -36,6 +38,7 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
     this.groupId = Objects.requireNonNull(groupId);
     this.artifactId = Objects.requireNonNull(artifactId);
     this.version = Objects.requireNonNull(version);
+    this.classifier = null;
     this.scope = null;
     this.optional = false;
   }
@@ -55,16 +58,16 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
     }
   }
 
-  public URI getResourceUri(URI origin, String resourceExtension) {
+  public URI getResourceUri(URI origin, String resourceExtension, boolean includeClassifier) {
     URI base = getBaseUri(origin);
-    String baseResourceName = String.format("%s-%s%s", artifactId, version, resourceExtension);
+    String baseResourceName = String.format("%s%s", getArtifactName(includeClassifier), resourceExtension);
     return base.resolve(baseResourceName);
   }
 
-  public URI getJarUri(URI origin) { return getResourceUri(origin, ".jar"); }
+  public URI getJarUri(URI origin) { return getResourceUri(origin, ".jar", true); }
   public Path getLocalJarPath(Path root) { return Paths.get(getJarUri(root.toUri())); }
 
-  public URI getPomUri(URI origin) { return getResourceUri(origin, ".pom"); }
+  public URI getPomUri(URI origin) { return getResourceUri(origin, ".pom", false); }
   public Path getLocalPomPath(Path root) {
     return Paths.get(getPomUri(root.toUri()));
   }
@@ -73,13 +76,19 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
     return String.format("%s:%s%s", groupId, artifactId,
         version == null ? "" : String.format(":%s", version));
   }
+
+  public String getArtifactName(boolean includeClassifier) {
+    return String.format("%s-%s%s", artifactId, version,
+        (includeClassifier && classifier != null) ? String.format("-%s", classifier) : "");
+  }
+
   public Set<ModuleMetadata> getExclusions() { return exclusions; }
   public String getGroupId() { return groupId; }
   public String getArtifactId() { return artifactId; }
   public String getVersion() { return version; }
 
   public String toString() {
-    return String.format(MOD_FMT, getCoordinates(), scope);
+    return String.format(MOD_FMT, getCoordinates(), scope, classifier);
   }
 
   @Override public int compareTo(ModuleMetadata other) {
@@ -91,7 +100,8 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
       ModuleMetadata m1 = (ModuleMetadata) o;
       return this.groupId.equals(m1.groupId)
           && this.artifactId.equals(m1.artifactId)
-          && (this.version != null && this.version.equalsIgnoreCase(m1.version));
+          && (this.version != null && this.version.equals(m1.version))
+          && (this.classifier != null && this.classifier.equals(m1.classifier));
     }
     return false;
   }

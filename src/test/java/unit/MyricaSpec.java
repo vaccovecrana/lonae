@@ -28,22 +28,24 @@ public class MyricaSpec {
       assertEquals("http://central.maven.org/maven2/org/apache/spark/spark-core_2.12/2.4.0/spark-core_2.12-2.4.0.pom", remotePom.toString());
       assertEquals("/tmp/repo/org/apache/spark/spark-core_2.12/2.4.0/spark-core_2.12-2.4.0.pom", localPom.toString());
     });
-
     it("Can resolve properties from a POM definition for a module's coordinates.", () -> {
       Module pom = repo.loadPom(new ModuleMetadata(
           "com.fasterxml.jackson.core", "jackson-core", "2.9.6"));
       Map<String, String> fullProps = repo.collectProperties(pom);
       assertFalse(fullProps.isEmpty());
     });
-
+    it("Can resolve dependencies for a module's coordinates which also specify native dependencies.", () -> {
+      Module opencvPlatform = repo.loadPom(new ModuleMetadata(
+          "org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4"
+      ));
+      Collection<Module> all = repo.resolveDependencies(opencvPlatform);
+      assertFalse(all.isEmpty());
+    });
     it("Can resolve dependencies for a module's coordinates.", () -> {
       Module spark = repo.loadPom(new ModuleMetadata(
-          // "com.fasterxml.jackson.core", "jackson-databind", "2.9.6"
-          "org.deeplearning4j", "deeplearning4j-core", "1.0.0-beta3"
-      ));
-      // "org.apache.spark", "spark-core_2.12", "2.4.0"));
+          "org.apache.spark", "spark-core_2.12", "2.4.0"));
       Collection<Module> all = repo.resolveDependencies(spark);
-      System.out.println();
+      assertFalse(all.isEmpty());
     });
   }
 }

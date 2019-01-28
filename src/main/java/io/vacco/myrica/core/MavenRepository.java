@@ -57,30 +57,6 @@ public class MavenRepository {
     return Optional.of(loadPom(new ModuleMetadata(parent, new HashMap<>())));
   }
 
-  private Map<String, String> loadProperties(Module m) {
-    requireNonNull(m);
-    Map<String, String> result = new TreeMap<>();
-    Match props = m.getPom().child("properties");
-    props.children().forEach(prop -> result.put(prop.getTagName(), prop.getTextContent()));
-    return result;
-  }
-
-  public Map<String, String> collectProperties(Module m) {
-    requireNonNull(m);
-    Map<String, String> result = new TreeMap<>();
-    Optional<Module> op = Optional.of(m);
-    while (op.isPresent()) {
-      result.putAll(loadProperties(op.get()));
-      op = loadParent(op.get());
-    }
-    result.put("project.groupId", m.getMetadata().getGroupId());
-    result.put("project.artifactId", m.getMetadata().getArtifactId());
-    result.put("project.version", m.getMetadata().getVersion());
-    Optional<Module> parent = loadParent(m);
-    parent.ifPresent(pm -> result.put("project.parent.version", pm.getMetadata().getVersion()));
-    return resolveProperties(result, new TreeMap<>());
-  }
-
   private Set<ModuleMetadata> loadDependencyManagement(Module root, Map<String, String> moduleProperties) {
     Set<ModuleMetadata> result = new TreeSet<>();
     Optional<Module> om = Optional.of(root);
@@ -94,6 +70,27 @@ public class MavenRepository {
     return result;
   }
 
+  public Map<String, String> collectProperties(Module m) {
+    requireNonNull(m);
+    Map<String, String> result = new TreeMap<>();
+    List<Module> ancestorModules = new ArrayList<>();
+    Optional<Module> op = Optional.of(m);
+    while (op.isPresent()) {
+      ancestorModules.add(op.get());
+      op = loadParent(op.get());
+    }
+    Collections.reverse(ancestorModules);
+    for (Module ancestorModule : ancestorModules) {
+      result.putAll(loadProperties(ancestorModule));
+    }
+    result.put("project.groupId", m.getMetadata().getGroupId());
+    result.put("project.artifactId", m.getMetadata().getArtifactId());
+    result.put("project.version", m.getMetadata().getVersion());
+    Optional<Module> parent = loadParent(m);
+    parent.ifPresent(pm -> result.put("project.parent.version", pm.getMetadata().getVersion()));
+    return resolveProperties(result, new TreeMap<>());
+  }
+
   private Collection<Module> resolveTail(Module root, Set<Module> resolved) {
     if (!root.getMetadata().isRuntime() || resolved.contains(root)) {
       return Collections.emptySet();
@@ -103,7 +100,6 @@ public class MavenRepository {
     Map<String, String> moduleProps = collectProperties(root);
     Set<ModuleMetadata> defaultModules = loadDependencyManagement(root, moduleProps);
     root.getPom().child("dependencies").children().each().stream()
-        .filter(el -> el.child("classifier").size() == 0) // TODO account for native dependencies too.
         .map(el -> new ModuleMetadata(el, moduleProps))
         .filter(ModuleMetadata::isRuntime)
         .map(mm0 -> {
