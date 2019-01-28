@@ -1,18 +1,13 @@
 package unit;
 
-import io.vacco.myrica.core.Module;
-import io.vacco.myrica.core.ModuleMetadata;
-import io.vacco.myrica.core.Repository;
+import io.vacco.myrica.core.*;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
 
 import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.nio.file.*;
+import java.util.*;
 
 import static j8spec.J8Spec.*;
 import static org.junit.Assert.*;

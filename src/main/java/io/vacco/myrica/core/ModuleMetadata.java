@@ -1,8 +1,11 @@
 package io.vacco.myrica.core;
 
+import org.joox.Match;
 import java.net.URI;
 import java.nio.file.*;
 import java.util.*;
+
+import static io.vacco.myrica.core.PropertyAccess.*;
 
 public class ModuleMetadata implements Comparable<ModuleMetadata> {
 
@@ -12,16 +15,24 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
   private final String artifactId;
   private final String version;
   private final String scope;
+  private final boolean optional;
 
-  public ModuleMetadata(String groupId, String artifactId, String version, String scope) {
-    this.groupId = Objects.requireNonNull(groupId);
-    this.artifactId = Objects.requireNonNull(artifactId);
-    this.version = version;
-    this.scope = scope;
+  public ModuleMetadata(Match pomXml, Map<String, String> resolvedProperties) {
+    Objects.requireNonNull(pomXml);
+    Objects.requireNonNull(resolvedProperties);
+    this.groupId = dereference(pomXml.child("groupId").text(), resolvedProperties);
+    this.artifactId = dereference(pomXml.child("artifactId").text(), resolvedProperties);
+    this.version = dereference(pomXml.child("version").text(), resolvedProperties);
+    this.scope = pomXml.child("scope").text();
+    this.optional = pomXml.child("optional").isNotEmpty();
   }
 
   public ModuleMetadata(String groupId, String artifactId, String version) {
-    this(groupId, artifactId, version, null);
+    this.groupId = Objects.requireNonNull(groupId);
+    this.artifactId = Objects.requireNonNull(artifactId);
+    this.version = Objects.requireNonNull(version);
+    this.scope = null;
+    this.optional = false;
   }
 
   public String getBaseRelativePath() {
@@ -58,6 +69,7 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
   public String getGroupId() { return groupId; }
   public String getArtifactId() { return artifactId; }
   public String getVersion() { return version; }
+  public boolean isOptional() { return optional; }
 
   public String toString() {
     return String.format(MOD_FMT, getCoordinates(), scope);
@@ -83,4 +95,12 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
     return this.getGroupId().equalsIgnoreCase(mm0.groupId)
         && this.getArtifactId().equalsIgnoreCase(mm0.artifactId);
   }
+
+  public boolean isRuntime() {
+    if (optional) return false;
+    if (scope != null && scope.equalsIgnoreCase("test")) return false;
+    return scope == null || !scope.equalsIgnoreCase("provided");
+  }
+
+
 }
