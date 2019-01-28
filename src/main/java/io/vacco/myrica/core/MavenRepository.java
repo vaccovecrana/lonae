@@ -10,12 +10,12 @@ import static java.util.Objects.*;
 import static org.joox.JOOX.*;
 import static io.vacco.myrica.core.PropertyAccess.*;
 
-public class Repository {
+public class MavenRepository {
 
   private Path localRoot;
   private URI remoteRoot;
 
-  public Repository(String localRootPath, String remotePath) {
+  public MavenRepository(String localRootPath, String remotePath) {
     this.localRoot = Paths.get(requireNonNull(localRootPath));
     if (!localRoot.toFile().exists()) {
       throw new IllegalArgumentException(
@@ -50,7 +50,7 @@ public class Repository {
     catch (Exception e) { throw new IllegalStateException(e); }
   }
 
-  public Optional<Module> getParent(Module m) { // TODO assuming that no parent reference can use property access.
+  public Optional<Module> loadParent(Module m) { // TODO assuming that no parent reference can use property access.
     requireNonNull(m);
     Match parent = m.getPom().child("parent");
     if (parent.size() == 0) return Optional.empty();
@@ -71,32 +71,34 @@ public class Repository {
     Optional<Module> op = Optional.of(m);
     while (op.isPresent()) {
       result.putAll(loadProperties(op.get()));
-      op = getParent(op.get());
+      op = loadParent(op.get());
     }
     result.put("project.groupId", m.getMetadata().getGroupId());
     result.put("project.artifactId", m.getMetadata().getArtifactId());
     result.put("project.version", m.getMetadata().getVersion());
+    Optional<Module> parent = loadParent(m);
+    parent.ifPresent(pm -> result.put("project.parent.version", pm.getMetadata().getVersion()));
     return resolveProperties(result, new TreeMap<>());
   }
 
   private Set<ModuleMetadata> loadDependencyManagement(Module root, Map<String, String> moduleProperties) {
-    Set<ModuleMetadata> result = new HashSet<>();
+    Set<ModuleMetadata> result = new TreeSet<>();
     Optional<Module> om = Optional.of(root);
     while (om.isPresent()) {
       Match depMgmt = om.get().getPom().child("dependencyManagement").child("dependencies");
       result.addAll(depMgmt.children().each().stream()
           .map(dm -> new ModuleMetadata(dm, moduleProperties)) // TODO account for dependency exclusions too
           .collect(Collectors.toSet()));
-      om = getParent(om.get());
+      om = loadParent(om.get());
     }
     return result;
   }
 
   private Collection<Module> resolveTail(Module root, Set<Module> resolved) {
-    System.out.println(root);
-    if (!root.getMetadata().isRuntime()) {
+    if (!root.getMetadata().isRuntime() || resolved.contains(root)) {
       return Collections.emptySet();
     }
+    System.out.println(root);
     resolved.add(root);
     Map<String, String> moduleProps = collectProperties(root);
     Set<ModuleMetadata> defaultModules = loadDependencyManagement(root, moduleProps);
@@ -110,7 +112,12 @@ public class Repository {
           }
           return Optional.of(mm0);
         }).filter(Optional::isPresent).map(Optional::get).forEach(mm0 -> {
-          resolved.addAll(resolveTail(loadPom(mm0), resolved));
+          Module pom0 = loadPom(mm0);
+          Collection<Module> pom0Resolved = resolveTail(pom0, resolved);
+          pom0Resolved = pom0Resolved.stream().filter(resolvedMod ->
+              mm0.getExclusions().stream().noneMatch(ex0 -> ex0.matchesGroupAndArtifact(resolvedMod.getMetadata()))
+          ).collect(Collectors.toSet());
+          resolved.addAll(pom0Resolved);
         });
     return resolved;
   }

@@ -20,7 +20,7 @@ public class MyricaSpec {
     String M2 = "http://central.maven.org/maven2/";
     String localRepo = "/tmp/repo/";
     ModuleMetadata module = new ModuleMetadata("org.apache.spark", "spark-core_2.12", "2.4.0");
-    Repository repo = new Repository(localRepo, M2);
+    MavenRepository repo = new MavenRepository(localRepo, M2);
 
     it("Can build local/remote paths for Maven coordinates.", () -> {
       URI remotePom = module.getPomUri(new URI(M2));
@@ -38,8 +38,10 @@ public class MyricaSpec {
 
     it("Can resolve dependencies for a module's coordinates.", () -> {
       Module spark = repo.loadPom(new ModuleMetadata(
-         // "com.fasterxml.jackson.core", "jackson-databind", "2.9.6"));
-      "org.apache.spark", "spark-core_2.12", "2.4.0"));
+          // "com.fasterxml.jackson.core", "jackson-databind", "2.9.6"
+          "org.deeplearning4j", "deeplearning4j-core", "1.0.0-beta3"
+      ));
+      // "org.apache.spark", "spark-core_2.12", "2.4.0"));
       Collection<Module> all = repo.resolveDependencies(spark);
       System.out.println();
     });

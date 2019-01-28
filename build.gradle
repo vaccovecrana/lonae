@@ -12,7 +12,7 @@ apply plugin: 'maven-publish'
 repositories { jcenter() }
 
 group 'io.vacco.myrmica'
-version 0.01
+version 0.05
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
