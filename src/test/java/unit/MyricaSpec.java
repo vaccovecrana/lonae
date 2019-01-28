@@ -45,7 +45,7 @@ public class MyricaSpec {
       Module spark = repo.loadPom(new ModuleMetadata(
          // "com.fasterxml.jackson.core", "jackson-databind", "2.9.6"));
       "org.apache.spark", "spark-core_2.12", "2.4.0"));
-      Collection<Module> all = repo.resolveDependencies(spark).collect(Collectors.toList());
+      Collection<Module> all = repo.resolveDependencies(spark);
       System.out.println();
     });
   }

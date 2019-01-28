@@ -151,11 +151,12 @@ public class Repository {
     return result;
   }
 
-  public Stream<Module> resolveDependencies(Module root) {
+  private Collection<Module> resolveTail(Module root, Set<Module> resolved) {
     System.out.println(root);
     Map<String, String> moduleProps = collectProperties(root);
     Set<ModuleMetadata> defaultModules = loadDependencyManagement(root, moduleProps);
-    return root.getPom().child("dependencies").children().each().stream()
+    resolved.add(root);
+    root.getPom().child("dependencies").children().each().stream()
         .filter(el -> el.child("classifier").size() == 0) // TODO account for native dependencies too.
         .filter(el -> {
           String scope = el.child("scope").text();
@@ -169,7 +170,14 @@ public class Repository {
             return defaultModules.stream().filter(mm::matchesGroupAndArtifact).findFirst();
           }
           return Optional.of(mm);
-        }).filter(Optional::isPresent).flatMap(mm -> resolveDependencies(loadPom(mm.get())));
+        }).filter(Optional::isPresent).map(Optional::get).forEach(mm0 -> {
+          resolved.addAll(resolveTail(loadPom(mm0), resolved));
+        });
+    return resolved;
+  }
+
+  public Collection<Module> resolveDependencies(Module root) {
+    return resolveTail(root, new TreeSet<>());
   }
 }
   /*
@@ -185,7 +193,7 @@ public class Repository {
 
     List<Module> moduleDependencies = new ArrayList<Module>();
 
-    for (Dependency dependency : dependencies) {
+    for (Dependency d ependency : dependencies) {
       if (dependency.isRuntimeDependency()) {
         moduleDependencies.add(createModule(dependency.groupId, dependency.artifactId, dependency.version));
       }

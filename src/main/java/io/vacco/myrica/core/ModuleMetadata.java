@@ -4,7 +4,7 @@ import java.net.URI;
 import java.nio.file.*;
 import java.util.*;
 
-public class ModuleMetadata {
+public class ModuleMetadata implements Comparable<ModuleMetadata> {
 
   private static final String MOD_FMT = "(c: [%s], s: [%s])";
 
@@ -63,6 +63,10 @@ public class ModuleMetadata {
     return String.format(MOD_FMT, getCoordinates(), scope);
   }
 
+  @Override public int compareTo(ModuleMetadata other) {
+    return getCoordinates().compareTo(other.getCoordinates());
+  }
+
   @Override public boolean equals(Object o) {
     if (o instanceof ModuleMetadata) {
       ModuleMetadata m1 = (ModuleMetadata) o;
@@ -73,10 +77,10 @@ public class ModuleMetadata {
     return false;
   }
 
+  @Override public int hashCode() { return getCoordinates().hashCode(); }
+
   public boolean matchesGroupAndArtifact(ModuleMetadata mm0) {
     return this.getGroupId().equalsIgnoreCase(mm0.groupId)
         && this.getArtifactId().equalsIgnoreCase(mm0.artifactId);
   }
-
-  @Override public int hashCode() { return getCoordinates().hashCode(); }
 }
