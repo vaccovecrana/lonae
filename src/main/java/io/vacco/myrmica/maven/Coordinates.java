@@ -63,4 +63,8 @@ public class Coordinates {
     return this.groupId.equalsIgnoreCase(mm0.groupId)
         && this.artifactId.equalsIgnoreCase(mm0.artifactId);
   }
+
+  public String getGroupId() { return groupId; }
+  public String getArtifactId() { return artifactId; }
+  public String getVersion() { return version; }
 }

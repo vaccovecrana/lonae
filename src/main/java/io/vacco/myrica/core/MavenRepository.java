@@ -48,11 +48,6 @@ public class MavenRepository {
     for (Module ancestorModule : ancestorModules) {
       result.putAll(loadProperties(ancestorModule));
     }
-    result.put("project.groupId", m.getMetadata().getGroupId());
-    result.put("project.artifactId", m.getMetadata().getArtifactId());
-    result.put("project.version", m.getMetadata().getVersion());
-    Optional<Module> parent = loadParent(m);
-    parent.ifPresent(pm -> result.put("project.parent.version", pm.getMetadata().getVersion()));
     return resolveProperties(result, new TreeMap<>());
   }
 
