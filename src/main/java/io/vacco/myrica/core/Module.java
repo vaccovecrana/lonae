@@ -3,7 +3,7 @@ package io.vacco.myrica.core;
 import org.joox.Match;
 
 import java.util.Objects;
-
+/*
 public class Module implements Comparable<Module> {
 
   private final ModuleMetadata metadata;
@@ -30,3 +30,4 @@ public class Module implements Comparable<Module> {
   @Override public int hashCode() { return metadata.hashCode(); }
   @Override public String toString() { return metadata.toString(); }
 }
+*/

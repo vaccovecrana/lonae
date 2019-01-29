@@ -6,15 +6,12 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.vacco.myrica.core.PropertyAccess.*;
-
+import static io.vacco.myrmica.util.PropertyAccess.*;
+/*
 public class ModuleMetadata implements Comparable<ModuleMetadata> {
 
   private static final String MOD_FMT = "(@[%s], scope: [%s], classifier: [%s])";
 
-  private final String groupId;
-  private final String artifactId;
-  private final String version;
   private final String classifier;
   private final String scope;
   private final boolean optional;
@@ -43,44 +40,19 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
     this.optional = false;
   }
 
-  public String getBaseRelativePath() {
-    String bp = Paths.get(groupId.replace(".", "/"), artifactId, version).toString();
-    return String.format("%s/", bp);
-  }
-
-  public URI getBaseUri(URI origin) {
-    try {
-      URI target = origin.resolve(getBaseRelativePath());
-      return target;
-    } catch (Exception e) {
-      String msg = String.format("Unable to resolve base url for [%s] at origin [%s]", toString(), origin);
-      throw new IllegalStateException(msg, e);
-    }
-  }
 
   public URI getResourceUri(URI origin, String resourceExtension, boolean includeClassifier) {
-    URI base = getBaseUri(origin);
-    String baseResourceName = String.format("%s%s", getArtifactName(includeClassifier), resourceExtension);
-    return base.resolve(baseResourceName);
+
+
   }
 
   public URI getJarUri(URI origin) { return getResourceUri(origin, ".jar", true); }
   public Path getLocalJarPath(Path root) { return Paths.get(getJarUri(root.toUri())); }
 
-  public URI getPomUri(URI origin) { return getResourceUri(origin, ".pom", false); }
-  public Path getLocalPomPath(Path root) {
-    return Paths.get(getPomUri(root.toUri()));
-  }
 
-  public String getCoordinates() {
-    return String.format("%s:%s%s", groupId, artifactId,
-        version == null ? "" : String.format(":%s", version));
-  }
 
-  public String getArtifactName(boolean includeClassifier) {
-    return String.format("%s-%s%s", artifactId, version,
-        (includeClassifier && classifier != null) ? String.format("-%s", classifier) : "");
-  }
+
+
 
   public Set<ModuleMetadata> getExclusions() { return exclusions; }
   public String getGroupId() { return groupId; }
@@ -95,23 +67,10 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
     return getCoordinates().compareTo(other.getCoordinates());
   }
 
-  @Override public boolean equals(Object o) {
-    if (o instanceof ModuleMetadata) {
-      ModuleMetadata m1 = (ModuleMetadata) o;
-      return this.groupId.equals(m1.groupId)
-          && this.artifactId.equals(m1.artifactId)
-          && (this.version != null && this.version.equals(m1.version))
-          && (this.classifier != null && this.classifier.equals(m1.classifier));
-    }
-    return false;
-  }
 
-  @Override public int hashCode() { return getCoordinates().hashCode(); }
 
-  public boolean matchesGroupAndArtifact(ModuleMetadata mm0) {
-    return this.getGroupId().equalsIgnoreCase(mm0.groupId)
-        && this.getArtifactId().equalsIgnoreCase(mm0.artifactId);
-  }
+
+
 
   public boolean isRuntime() {
     if (optional) return false;
@@ -119,3 +78,4 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
     return scope == null || !scope.equalsIgnoreCase("provided");
   }
 }
+*/

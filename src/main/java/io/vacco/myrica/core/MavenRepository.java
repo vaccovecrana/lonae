@@ -8,47 +8,12 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.*;
 import static org.joox.JOOX.*;
-import static io.vacco.myrica.core.PropertyAccess.*;
+import static io.vacco.myrmica.util.PropertyAccess.*;
 
 public class MavenRepository {
+/*
 
-  private Path localRoot;
-  private URI remoteRoot;
 
-  public MavenRepository(String localRootPath, String remotePath) {
-    this.localRoot = Paths.get(requireNonNull(localRootPath));
-    if (!localRoot.toFile().exists()) {
-      throw new IllegalArgumentException(
-          String.format("Missing root folder: [%s]", localRoot.toAbsolutePath().toString()));
-    }
-    if (!localRoot.toFile().isDirectory()) {
-      throw new IllegalArgumentException(
-          String.format("Not a directory: [%s]", localRoot.toAbsolutePath().toString()));
-    }
-    if (!requireNonNull(remotePath).endsWith("/")) {
-      throw new IllegalArgumentException(
-          String.format("Remote path does not end with a trailing slash: [%s]", remotePath));
-    }
-    try { this.remoteRoot = new URI(remotePath); }
-    catch (URISyntaxException e) { throw new IllegalStateException(e); }
-  }
-
-  public Module loadPom(ModuleMetadata m) {
-    requireNonNull(m);
-    try {
-      Path target = m.getLocalPomPath(localRoot);
-      if (!target.toFile().getParentFile().exists()) {
-        target.toFile().getParentFile().mkdirs();
-      }
-      Match pom;
-      if (!target.toFile().exists()) {
-        Files.copy(m.getPomUri(remoteRoot).toURL().openStream(), target);
-      }
-      pom = $(target.toFile());
-      return new Module(pom, m);
-    }
-    catch (Exception e) { throw new IllegalStateException(e); }
-  }
 
   public Optional<Module> loadParent(Module m) { // TODO assuming that no parent reference can use property access.
     requireNonNull(m);
@@ -121,4 +86,6 @@ public class MavenRepository {
   public Collection<Module> resolveDependencies(Module root) {
     return resolveTail(root, new TreeSet<>());
   }
+
+  */
 }

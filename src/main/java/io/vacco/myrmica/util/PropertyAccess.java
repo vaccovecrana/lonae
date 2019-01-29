@@ -1,4 +1,4 @@
-package io.vacco.myrica.core;
+package io.vacco.myrmica.util;
 
 import org.joox.Match;
 import java.util.*;
@@ -51,11 +51,12 @@ public class PropertyAccess {
     return resolved;
   }
 
+  /*
   public static Map<String, String> loadProperties(Module m) {
     requireNonNull(m);
     Map<String, String> result = new TreeMap<>();
     Match props = m.getPom().child("properties");
     props.children().forEach(prop -> result.put(prop.getTagName(), prop.getTextContent()));
     return result;
-  }
+  }*/
 }
