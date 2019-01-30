@@ -4,6 +4,7 @@ import com.github.underscore.lodash.U;
 import com.github.underscore.lodash.Xml;
 import io.vacco.myrica.core.*;
 import io.vacco.myrmica.maven.Coordinates;
+import io.vacco.myrmica.maven.Pom;
 import io.vacco.myrmica.maven.Repository;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
@@ -36,12 +37,13 @@ public class MyricaSpec {
 
     it("Can resolve properties from a POM definition for a module's coordinates.", () -> {
       Match pom = repo.buildPom(new Coordinates(
-          // "com.fasterxml.jackson.core", "jackson-databind", "2.9.8"
-          "org.apache.spark", "spark-core_2.12", "2.4.0"
+          "com.fasterxml.jackson.core", "jackson-databind", "2.9.8"
+          // "org.apache.spark", "spark-core_2.12", "2.4.0"
           // "org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4"
       ));
       // Map<String, String> fullProps = repo.collectProperties(pom);
       // assertFalse(fullProps.isEmpty());
+      Pom p0 = new Pom(pom);
       System.out.println();
     });
 /*

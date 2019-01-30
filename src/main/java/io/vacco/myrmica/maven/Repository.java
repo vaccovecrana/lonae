@@ -95,7 +95,6 @@ public class Repository {
     }
 
     resolvePomKeyReferences(ePom, resolveProperties(rawProps));
-
     return $(Xml.toXml(ePom));
   }
 

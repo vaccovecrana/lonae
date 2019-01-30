@@ -1,5 +1,7 @@
 package io.vacco.myrmica.maven;
 
+import org.joox.Match;
+
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,6 +19,10 @@ public class Coordinates {
     this.version = version;
   }
 
+  public Coordinates(Match xml) {
+    this(xml.child("groupId").text(), xml.child("artifactId").text(), xml.child("version").text());
+  }
+
   public URI getBaseUri(URI origin) {
     try {
       return origin.resolve(String.format("%s/",
@@ -27,13 +33,13 @@ public class Coordinates {
     }
   }
 
-  public String getBaseArtifactName() {
+  public String getBaseResourceName() {
     return String.format("%s-%s", artifactId, version);
   }
 
   public URI getPomUri(URI origin) {
     URI base = getBaseUri(origin);
-    String baseResourceName = String.format("%s.pom", getBaseArtifactName());
+    String baseResourceName = String.format("%s.pom", getBaseResourceName());
     return base.resolve(baseResourceName);
   }
   public Path getLocalPomPath(Path root) {
@@ -47,6 +53,7 @@ public class Coordinates {
 
   @Override public String toString() { return toExternalForm(); }
 
+  @Override public int hashCode() { return toExternalForm().hashCode(); }
   @Override public boolean equals(Object o) {
     if (o instanceof Coordinates) {
       Coordinates m1 = (Coordinates) o;
@@ -56,8 +63,6 @@ public class Coordinates {
     }
     return false;
   }
-
-  @Override public int hashCode() { return toExternalForm().hashCode(); }
 
   public boolean matchesGroupAndArtifact(Coordinates mm0) {
     return this.groupId.equalsIgnoreCase(mm0.groupId)
