@@ -97,22 +97,22 @@ public class Repository {
     });
   }
 
-  private void loadRtTail(Coordinates root, Artifact parent, Set<Artifact> resolved) {
-    Pom rootPom = new Pom(buildPom(root));
-    Artifact art = rootPom.getRootArtifact();
-    if (art.isRuntime()) { resolved.add(art); }
-    for (Artifact rd : rootPom.getRuntimeDependencies()) {
-      if (parent != null && parent.parentExcludes(rd)) return;
+  private void loadRtTail(DependencyNode context, Set<Artifact> resolved) {
+    if (context.artifact.isRuntime()) { resolved.add(context.artifact); }
+    for (Artifact rd : context.pom.getDependencies(true)) {
+      if (context.excludes(rd)) return;
+      if (context.isTopLevelOverride(rd)) return;
       if (rd.getMetadata().classifier != null) { resolved.add(rd); }
       if (!resolved.contains(rd)) {
-        loadRtTail(rd.getAt(), art, resolved);
+        loadRtTail(new DependencyNode(new Pom(buildPom(rd.getAt())), rd, context), resolved);
       }
     }
   }
 
   public Set<Artifact> loadRuntimeArtifactsAt(Coordinates root) {
     Set<Artifact> result = new TreeSet<>();
-    loadRtTail(root, null, result);
+    DependencyNode n0 = new DependencyNode(new Pom(buildPom(root)));
+    loadRtTail(n0, result);
     return result;
   }
 }

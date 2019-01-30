@@ -41,18 +41,21 @@ public class MyrmicaSpec {
       Pom p0 = new Pom(pom);
       System.out.println();
       Path p = Paths.get("/tmp/repo/");
-      p0.getRuntimeDependencies().forEach(d -> {
+      p0.getDependencies().forEach(d -> {
         System.out.println(d.getLocalPackagePath(p));
       });
     });
 */
     it("Can resolve the dependency hierarchy of a module's coordinates.", () -> {
       Set<Artifact> rtDeps = repo.loadRuntimeArtifactsAt(new Coordinates(
-          // "org.apache.spark", "spark-core_2.12", "2.4.0"
+          "org.apache.spark", "spark-core_2.12", "2.4.0"
           // "com.fasterxml.jackson.core", "jackson-databind", "2.9.8"
-          "org.springframework.boot", "spring-boot-starter-web", "2.1.2.RELEASE"
+          // "org.springframework.boot", "spring-boot-starter-web", "2.1.2.RELEASE"
           // "org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4"
       ));
+
+      // compile] <-- [com.fasterxml.jackson.module:jackson-module-scala_2.12:2.6.7.1/jackson-module-scala_2.12-2.6.7.1.jar (jar), compile {-1}]]
+
       assertFalse(rtDeps.isEmpty());
     });
 /*

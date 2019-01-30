@@ -17,13 +17,13 @@ public class Artifact implements Comparable<Artifact> {
   private final Component metadata;
   private final boolean optional;
   private String scope;
-  private final Set<Artifact> parentExclusions = new TreeSet<>();
+  private final Set<Artifact> exclusions = new TreeSet<>();
 
   public Artifact(Match xml) {
     this.at = new Coordinates(requireNonNull(xml));
     this.scope = xml.child(Constants.PomTag.scope.toString()).text();
     this.optional = Boolean.parseBoolean(xml.child(Constants.PomTag.optional.toString()).text());
-    this.parentExclusions.addAll(artifactsOf(xml.child(Constants.PomTag.exclusions.toString())));
+    this.exclusions.addAll(artifactsOf(xml.child(Constants.PomTag.exclusions.toString())));
 
     Optional<Component> c = Component.forType(xml.child(ComponentTag.type.toString()).text());
     if (!c.isPresent()) { c = Component.forPackaging(xml.child(ComponentTag.packaging.toString()).text()); }
@@ -70,16 +70,15 @@ public class Artifact implements Comparable<Artifact> {
 
   public Coordinates getAt() { return at; }
   public Component getMetadata() { return metadata; }
-  public boolean hasParentExclusions() { return !parentExclusions.isEmpty(); }
-  public boolean parentExcludes(Artifact a) {
-    boolean excluded = parentExclusions.stream().anyMatch(e -> e.getAt().matchesGroupAndArtifact(a.getAt()));
+  public boolean excludes(Artifact a) {
+    boolean excluded = exclusions.stream().anyMatch(e -> e.getAt().matchesGroupAndArtifact(a.getAt()));
     return excluded;
   }
 
   @Override public String toString() {
     return format("[%s%s%s]", toExternalForm(),
         scope != null ? format(", %s", scope) : "",
-        parentExclusions.size() > 0 ? format(" {-%s}", parentExclusions.size()) : "");
+        exclusions.size() > 0 ? format(" {-%s}", exclusions.size()) : "");
   }
 
   public static Set<Artifact> artifactsOf(Match xmlDepNode) {

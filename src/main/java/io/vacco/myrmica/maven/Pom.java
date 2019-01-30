@@ -21,15 +21,16 @@ public class Pom {
     this.dependencies = artifactsOf(ePom.child(PomTag.dependencies.toString()));
   }
 
-  public Set<Artifact> getRuntimeDependencies() {
+  public Set<Artifact> getDependencies(boolean onlyRuntime) {
     Set<Artifact> result = new TreeSet<>();
-    result.addAll(dependencies.stream().filter(Artifact::isRuntime)
+    result.addAll(dependencies.stream()
+        .filter(a -> !onlyRuntime || a.isRuntime())
         .map(d0 -> {
-          Optional<Artifact> defaultV = defaultVersions.stream()
+          if (d0.getAt().getVersion() != null) return Optional.of(d0);
+          return defaultVersions.stream()
               .filter(dv -> dv.getAt().matchesGroupAndArtifact(d0.getAt()))
               .findFirst();
-          return defaultV.orElse(d0);
-        }).collect(Collectors.toSet()));
+        }).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toSet()));
     return result;
   }
 
