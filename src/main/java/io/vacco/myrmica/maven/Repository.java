@@ -70,11 +70,16 @@ public class Repository {
         oc = loadParent(pp);
       }
 
+      String rootPackaging = poms.get(0).child(ComponentTag.packaging.toString()).text();
       Optional<Coordinates> parentCoords = loadParent(poms.get(0));
       Optional<Match> ePom = poms.stream()
           .map(pom -> NodeUtil.filterTop(pom, PomTag.exclusionTags()))
           .reduce((pom0, pom1) ->
               NodeUtil.merge(pom1, pom0));
+
+      if (rootPackaging != null) {
+        ePom.get().child(ComponentTag.packaging.toString()).text(rootPackaging);
+      }
 
       Map<String, String> rawProps = loadProperties(ePom.get());
       rawProps.put("project.build.directory", new File(".").getAbsolutePath());
@@ -92,25 +97,22 @@ public class Repository {
     });
   }
 
-  private void loadRtTail(Coordinates root, Set<Artifact> resolved) {
+  private void loadRtTail(Coordinates root, Artifact parent, Set<Artifact> resolved) {
     Pom rootPom = new Pom(buildPom(root));
     Artifact art = rootPom.getRootArtifact();
-    if (art.isRuntime()) {
-      resolved.add(art);
-    }
+    if (art.isRuntime()) { resolved.add(art); }
     for (Artifact rd : rootPom.getRuntimeDependencies()) {
-      if (rd.getMetadata().classifier != null) {
-        resolved.add(rd);
-      }
+      if (parent != null && parent.parentExcludes(rd)) return;
+      if (rd.getMetadata().classifier != null) { resolved.add(rd); }
       if (!resolved.contains(rd)) {
-        loadRtTail(rd.getAt(), resolved);
+        loadRtTail(rd.getAt(), art, resolved);
       }
     }
   }
 
   public Set<Artifact> loadRuntimeArtifactsAt(Coordinates root) {
     Set<Artifact> result = new TreeSet<>();
-    loadRtTail(root, result);
+    loadRtTail(root, null, result);
     return result;
   }
 }

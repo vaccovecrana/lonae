@@ -20,7 +20,7 @@ public class Constants {
     public static String [] exclusionTags() {
       return stringValues(build, description, developers, distributionManagement,
           inceptionYear, issueManagement, licenses, mailingLists, modules, organization,
-          parent, pluginRepositories, reporting, repositories, scm, url);
+          ComponentTag.packaging, parent, pluginRepositories, reporting, repositories, scm, url);
     }
   }
 

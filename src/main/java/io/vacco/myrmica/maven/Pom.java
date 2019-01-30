@@ -25,13 +25,10 @@ public class Pom {
     Set<Artifact> result = new TreeSet<>();
     result.addAll(dependencies.stream().filter(Artifact::isRuntime)
         .map(d0 -> {
-          if (d0.getAt().getVersion() == null) {
-            Optional<Artifact> defaultV = defaultVersions.stream()
-                .filter(dv -> dv.getAt().matchesGroupAndArtifact(d0.getAt()))
-                .findFirst();
-            if (defaultV.isPresent()) return defaultV.get();
-          }
-          return d0;
+          Optional<Artifact> defaultV = defaultVersions.stream()
+              .filter(dv -> dv.getAt().matchesGroupAndArtifact(d0.getAt()))
+              .findFirst();
+          return defaultV.orElse(d0);
         }).collect(Collectors.toSet()));
     return result;
   }

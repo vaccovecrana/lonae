@@ -3,7 +3,6 @@ package unit;
 import io.vacco.myrmica.maven.*;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
-import org.joox.Match;
 import org.junit.runner.RunWith;
 
 import java.net.URI;
@@ -15,7 +14,7 @@ import static org.junit.Assert.*;
 
 @DefinedOrder
 @RunWith(J8SpecRunner.class)
-public class MyricaSpec {
+public class MyrmicaSpec {
   static {
 
     String M2 = "http://central.maven.org/maven2/";
@@ -51,8 +50,8 @@ public class MyricaSpec {
       Set<Artifact> rtDeps = repo.loadRuntimeArtifactsAt(new Coordinates(
           // "org.apache.spark", "spark-core_2.12", "2.4.0"
           // "com.fasterxml.jackson.core", "jackson-databind", "2.9.8"
-          // "org.springframework.boot", "spring-boot-starter-web", "2.1.2.RELEASE"
-          "org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4"
+          "org.springframework.boot", "spring-boot-starter-web", "2.1.2.RELEASE"
+          // "org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4"
       ));
       assertFalse(rtDeps.isEmpty());
     });
