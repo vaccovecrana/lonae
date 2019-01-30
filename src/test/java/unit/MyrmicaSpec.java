@@ -16,7 +16,6 @@ import static org.junit.Assert.*;
 @RunWith(J8SpecRunner.class)
 public class MyrmicaSpec {
   static {
-
     String M2 = "http://central.maven.org/maven2/";
     String localRepo = "/tmp/repo/";
     Repository repo = new Repository(localRepo, M2);

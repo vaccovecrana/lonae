@@ -1,4 +1,4 @@
-package io.vacco.myrmica.util;
+package io.vacco.myrmica.maven;
 
 import org.joox.Match;
 import org.slf4j.*;
@@ -8,12 +8,12 @@ import java.util.regex.*;
 import static java.util.Objects.requireNonNull;
 import static io.vacco.myrmica.maven.Constants.*;
 
-public class PropertyAccess {
+class PropertyAccess {
 
   private static final Logger log = LoggerFactory.getLogger(PropertyAccess.class);
   private static final Pattern propertyRegex = Pattern.compile(".*?\\$\\{(.*?)\\}.*?");
 
-  public static String removeVarTokens(String key) {
+  private static String removeVarTokens(String key) {
     if (key == null) {
       return null;
     }
@@ -23,7 +23,7 @@ public class PropertyAccess {
         .replace("}", "");
   }
 
-  public static List<String> scanProperties(String raw) {
+  private static List<String> scanProperties(String raw) {
     List<String> result = new ArrayList<>();
     if (raw == null) return result;
     Matcher matchPattern = propertyRegex.matcher(raw);
@@ -31,7 +31,7 @@ public class PropertyAccess {
     return result;
   }
 
-  public static String dereference(String property, Map<String, String> resolvedKeys) {
+  private static String dereference(String property, Map<String, String> resolvedKeys) {
     for (String keyRef : scanProperties(property)) {
       String propVal = resolvedKeys.get(keyRef);
       if (propVal == null) {
@@ -46,7 +46,7 @@ public class PropertyAccess {
     return removeVarTokens(property);
   }
 
-  public static void resolvePomKeyReferences(Match root, Map<String, String> resolvedKeys) {
+  static void resolvePomKeyReferences(Match root, Map<String, String> resolvedKeys) {
     if (!NodeUtil.isTextContent(root)) {
       String keyVal = root.text();
       if (keyVal.contains("${")) {
@@ -55,7 +55,7 @@ public class PropertyAccess {
     } else { root.children().each().forEach(c -> resolvePomKeyReferences(c, resolvedKeys)); }
   }
 
-  public static String resolveKeyReferences(String key, Map<String, String> raw) {
+  private static String resolveKeyReferences(String key, Map<String, String> raw) {
     String rawValue = raw.get(key);
     List<String> keyRefs = scanProperties(rawValue);
     if (keyRefs.isEmpty()) {
@@ -75,13 +75,13 @@ public class PropertyAccess {
     return removeVarTokens(rawValue);
   }
 
-  public static Map<String, String> resolveProperties(Map<String, String> raw) {
+  static Map<String, String> resolveProperties(Map<String, String> raw) {
     Map<String, String> resolved = new TreeMap<>();
     raw.keySet().forEach(key -> resolved.put(key, resolveKeyReferences(key, raw)));
     return resolved;
   }
 
-  public static Map<String, String> loadProperties(Match rootPom) {
+  static Map<String, String> loadProperties(Match rootPom) {
     requireNonNull(rootPom);
     Map<String, String> result = new TreeMap<>();
     for (Match prop : rootPom.child(PomTag.properties.toString()).children().each()) {

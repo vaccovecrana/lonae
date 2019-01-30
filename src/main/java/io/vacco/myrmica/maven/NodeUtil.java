@@ -1,7 +1,5 @@
-package io.vacco.myrmica.util;
+package io.vacco.myrmica.maven;
 
-import io.vacco.myrmica.maven.Artifact;
-import io.vacco.myrmica.maven.Coordinates;
 import org.joox.Match;
 import java.util.Optional;
 import static io.vacco.myrmica.maven.Constants.*;
@@ -30,7 +28,7 @@ public class NodeUtil {
     }).findFirst();
   }
 
-  public static Match merge(Match l, Match r) {
+  static Match merge(Match l, Match r) {
     for (Match rc : r.children().each()) {
       String key = idOf(rc);
       Optional<Match> lc = childWithId(l, key);
@@ -47,14 +45,14 @@ public class NodeUtil {
     return l;
   }
 
-  public static Match filterTop(Match n, String ... tagExclusions) {
+  static Match filterTop(Match n, String ... tagExclusions) {
     for (String tagExclusion : tagExclusions) {
       n.child(tagExclusion).remove();
     }
     return n;
   }
 
-  public static boolean isTextContent(Match n) {
+  static boolean isTextContent(Match n) {
     int size = n.xpath("./*").size();
     return size > 0;
   }

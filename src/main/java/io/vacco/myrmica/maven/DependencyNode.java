@@ -4,19 +4,19 @@ import java.util.Objects;
 
 public class DependencyNode {
 
-  public final Pom pom;
-  public final Artifact artifact;
+  final Pom pom;
+  final Artifact artifact;
   private final DependencyNode parent;
 
-  public DependencyNode(Pom p, Artifact a, DependencyNode parent) {
+  DependencyNode(Pom p, Artifact a, DependencyNode parent) {
     this.pom = Objects.requireNonNull(p);
     this.artifact = Objects.requireNonNull(a);
     this.parent = parent;
   }
 
-  public DependencyNode(Pom p) { this(p, p.getRootArtifact(), null); }
+  DependencyNode(Pom p) { this(p, p.getRootArtifact(), null); }
 
-  public boolean excludes(Artifact a) {
+  boolean excludes(Artifact a) {
     DependencyNode n0 = this;
     while (n0 != null) {
       if (n0.artifact.excludes(a)) return true;
@@ -25,7 +25,7 @@ public class DependencyNode {
     return false;
   }
 
-  public boolean isTopLevelOverride(Artifact a) {
+  boolean isTopLevelOverride(Artifact a) {
     DependencyNode n0 = this;
     DependencyNode top = this;
     while (n0 != null) {

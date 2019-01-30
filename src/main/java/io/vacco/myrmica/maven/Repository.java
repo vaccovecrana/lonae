@@ -1,6 +1,5 @@
 package io.vacco.myrmica.maven;
 
-import io.vacco.myrmica.util.NodeUtil;
 import org.joox.Match;
 import org.slf4j.*;
 
@@ -11,7 +10,7 @@ import java.util.*;
 
 import static java.util.Objects.*;
 import static org.joox.JOOX.*;
-import static io.vacco.myrmica.util.PropertyAccess.*;
+import static io.vacco.myrmica.maven.PropertyAccess.*;
 import static io.vacco.myrmica.maven.Constants.*;
 
 public class Repository {
@@ -37,7 +36,7 @@ public class Repository {
     catch (URISyntaxException e) { throw new IllegalStateException(e); }
   }
 
-  public Match loadPom(Coordinates c) {
+  private Match loadPom(Coordinates c) {
     requireNonNull(c);
     try {
       Path target = c.getLocalPomPath(localRoot);
@@ -54,13 +53,13 @@ public class Repository {
     }
   }
 
-  public Optional<Coordinates> loadParent(Match pom) {
+  private Optional<Coordinates> loadParent(Match pom) {
     Match p = pom.child(PomTag.parent.toString());
     if (p.size() == 0) return Optional.empty();
     return Optional.of(new Coordinates(p));
   }
 
-  public Match buildPom(Coordinates c) {
+  private Match buildPom(Coordinates c) {
     return resolvedPoms.computeIfAbsent(c, coordinates -> {
       List<Match> poms = new ArrayList<>();
       Optional<Coordinates> oc = Optional.of(coordinates);
