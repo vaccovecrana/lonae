@@ -6,6 +6,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import static java.lang.String.format;
 
 public class Coordinates {
 
@@ -34,7 +35,8 @@ public class Coordinates {
   }
 
   public String getBaseResourceName() {
-    return String.format("%s-%s", artifactId, version);
+    return String.format("%s%s", artifactId,
+        version != null ? format("-%s", version) : "");
   }
 
   public URI getPomUri(URI origin) {

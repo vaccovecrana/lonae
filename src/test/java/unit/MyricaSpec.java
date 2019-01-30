@@ -37,14 +37,19 @@ public class MyricaSpec {
 
     it("Can resolve properties from a POM definition for a module's coordinates.", () -> {
       Match pom = repo.buildPom(new Coordinates(
-          "com.fasterxml.jackson.core", "jackson-databind", "2.9.8"
-          // "org.apache.spark", "spark-core_2.12", "2.4.0"
+          // "com.fasterxml.jackson.core", "jackson-databind", "2.9.8"
+          "org.apache.spark", "spark-core_2.12", "2.4.0"
           // "org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4"
       ));
       // Map<String, String> fullProps = repo.collectProperties(pom);
       // assertFalse(fullProps.isEmpty());
       Pom p0 = new Pom(pom);
       System.out.println();
+      Path p = Paths.get("/tmp/repo/");
+      p0.getDefaultVersions().forEach(d -> {
+        System.out.println(d.getLocalJarPath(p));
+      });
+
     });
 /*
 

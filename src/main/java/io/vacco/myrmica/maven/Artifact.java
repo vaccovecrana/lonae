@@ -4,6 +4,10 @@ import org.joox.Match;
 
 import java.net.URI;
 import java.nio.file.*;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+
 import static java.util.Objects.requireNonNull;
 import static java.lang.String.format;
 
@@ -17,6 +21,8 @@ public class Artifact implements Comparable<Artifact> {
   private final String scope;
   private final boolean optional;
 
+  private final Set<Artifact> exclusions = new TreeSet<>();
+
   public Artifact(Coordinates at, String classifier, String scope, boolean optional) {
     this.at = requireNonNull(at);
     this.classifier = classifier;
@@ -24,9 +30,8 @@ public class Artifact implements Comparable<Artifact> {
     this.optional = optional;
   }
 
-  public Artifact(Match xml) {
-    this(new Coordinates(xml), xml.child("classifier").text(),
-        xml.child("scope").text(), xml.child("optional").size() > 0);
+  public String toExternalForm() {
+    return format("%s/%s", at.toExternalForm(), getBaseArtifactName());
   }
 
   public String getBaseArtifactName() {
@@ -47,7 +52,7 @@ public class Artifact implements Comparable<Artifact> {
   }
 
   @Override public int compareTo(Artifact o) {
-    return getBaseArtifactName().compareTo(o.getBaseArtifactName());
+    return toExternalForm().compareTo(o.toExternalForm());
   }
 
   @Override public int hashCode() { return getBaseArtifactName().hashCode(); }
@@ -60,4 +65,22 @@ public class Artifact implements Comparable<Artifact> {
   }
 
   public Coordinates getAt() { return at; }
+
+  @Override public String toString() {
+    return format("[%s%s%s]", toExternalForm(),
+        scope != null ? format(", %s", scope) : "",
+        exclusions.size() > 0 ? format(" {-%s}", exclusions.size()) : "");
+  }
+
+  public static Artifact fromXml(Match xml) {
+    Artifact a = new Artifact(new Coordinates(xml), xml.child("classifier").text(),
+        xml.child("scope").text(), xml.child("optional").size() > 0);
+    a.exclusions.addAll(artifactsOf(xml.child("exclusions")));
+    return a;
+  }
+
+  public static Set<Artifact> artifactsOf(Match xmlDepNode) {
+    return new TreeSet<>(xmlDepNode.children().each().stream()
+        .map(Artifact::fromXml).collect(Collectors.toSet()));
+  }
 }
