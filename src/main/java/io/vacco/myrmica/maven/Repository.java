@@ -95,11 +95,16 @@ public class Repository {
   private void loadRtTail(Coordinates root, Set<Artifact> resolved) {
     Pom rootPom = new Pom(buildPom(root));
     Artifact art = rootPom.getRootArtifact();
-    if (art.isRuntime() && !resolved.contains(art)) {
+    if (art.isRuntime()) {
       resolved.add(art);
     }
     for (Artifact rd : rootPom.getRuntimeDependencies()) {
-      loadRtTail(rd.getAt(), resolved);
+      if (rd.getMetadata().classifier != null) {
+        resolved.add(rd);
+      }
+      if (!resolved.contains(rd)) {
+        loadRtTail(rd.getAt(), resolved);
+      }
     }
   }
 

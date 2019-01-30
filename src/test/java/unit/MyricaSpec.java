@@ -49,10 +49,10 @@ public class MyricaSpec {
 */
     it("Can resolve the dependency hierarchy of a module's coordinates.", () -> {
       Set<Artifact> rtDeps = repo.loadRuntimeArtifactsAt(new Coordinates(
-          "org.apache.spark", "spark-core_2.12", "2.4.0"
+          // "org.apache.spark", "spark-core_2.12", "2.4.0"
           // "com.fasterxml.jackson.core", "jackson-databind", "2.9.8"
           // "org.springframework.boot", "spring-boot-starter-web", "2.1.2.RELEASE"
-          // "org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4"
+          "org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4"
       ));
       assertFalse(rtDeps.isEmpty());
     });
