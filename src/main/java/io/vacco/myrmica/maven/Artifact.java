@@ -10,10 +10,14 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 import static java.lang.String.format;
+import static io.vacco.myrmica.maven.Constants.*;
 
 public class Artifact implements Comparable<Artifact> {
 
+  public static final String DEFAULT_PACKAGE_TYPE = Constants.PackageType.jar.toString();
+
   private final Coordinates at;
+  private final String type;
   private final String classifier;
   private final String packaging;
   private final String scope;
@@ -21,16 +25,17 @@ public class Artifact implements Comparable<Artifact> {
 
   private final Set<Artifact> exclusions = new TreeSet<>();
 
-  public Artifact(Coordinates at, String classifier, String packaging, String scope, boolean optional) {
+  public Artifact(Coordinates at, String type, String classifier, String packaging, String scope, boolean optional) {
     this.at = requireNonNull(at);
-    this.packaging = packaging != null ? packaging : "jar";
+    this.type = type != null ? type : DEFAULT_PACKAGE_TYPE;
+    this.packaging = packaging != null ? packaging : DEFAULT_PACKAGE_TYPE;
     this.classifier = classifier;
     this.scope = scope;
     this.optional = optional;
   }
 
   public String toExternalForm() {
-    return format("%s/%s.%s", at.toExternalForm(), getBaseArtifactName(), packaging);
+    return format("%s/%s.%s (%s)", at.toExternalForm(), getBaseArtifactName(), type, packaging);
   }
 
   public String getBaseArtifactName() {
@@ -41,13 +46,14 @@ public class Artifact implements Comparable<Artifact> {
     return at.getBaseUri(origin).resolve(format("%s%s", getBaseArtifactName(), resourceExtension));
   }
 
-  public URI getPackageUri(URI origin) { return getResourceUri(origin, format(".%s", packaging)); }
+  public URI getPackageUri(URI origin) { return getResourceUri(origin, format(".%s", type)); }
   public Path getLocalPackagePath(Path root) { return Paths.get(getPackageUri(root.toUri())); }
 
   public boolean isRuntime() {
+    if (!DEFAULT_PACKAGE_TYPE.equals(type)) return false; // TODO possibly enhance this decision.
     if (optional) return false;
-    if (scope != null && scope.equalsIgnoreCase("test")) return false;
-    return scope == null || !scope.equalsIgnoreCase("provided");
+    if (scope != null && scope.equalsIgnoreCase(Scope.test.toString())) return false;
+    return scope == null || !scope.equalsIgnoreCase(Scope.provided.toString());
   }
 
   @Override public int compareTo(Artifact o) { return toExternalForm().compareTo(o.toExternalForm()); }
@@ -61,6 +67,7 @@ public class Artifact implements Comparable<Artifact> {
   }
 
   public Coordinates getAt() { return at; }
+  public Set<Artifact> getExclusions() { return exclusions; }
 
   @Override public String toString() {
     return format("[%s%s%s]", toExternalForm(),
@@ -70,9 +77,12 @@ public class Artifact implements Comparable<Artifact> {
 
   public static Artifact fromXml(Match xml) {
     Artifact a = new Artifact(new Coordinates(xml),
-        xml.child("classifier").text(), xml.child("packaging").text(),
-        xml.child("scope").text(), xml.child("optional").size() > 0);
-    a.exclusions.addAll(artifactsOf(xml.child("exclusions")));
+        xml.child(Constants.PomTag.type.toString()).text(),
+        xml.child(Constants.PomTag.classifier.toString()).text(),
+        xml.child(Constants.PomTag.packaging.toString()).text(),
+        xml.child(Constants.PomTag.scope.toString()).text(),
+        xml.child(Constants.PomTag.optional.toString()).size() > 0);
+    a.exclusions.addAll(artifactsOf(xml.child(Constants.PomTag.exclusions.toString())));
     return a;
   }
 

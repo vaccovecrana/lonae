@@ -2,6 +2,7 @@ package io.vacco.myrmica.maven;
 
 import com.github.underscore.lodash.Xml;
 import io.vacco.myrmica.util.MapUtil;
+import io.vacco.myrmica.util.NodeUtil;
 import org.joox.Match;
 import org.slf4j.*;
 
@@ -13,6 +14,7 @@ import java.util.*;
 import static java.util.Objects.*;
 import static org.joox.JOOX.*;
 import static io.vacco.myrmica.util.PropertyAccess.*;
+import static io.vacco.myrmica.maven.Constants.*;
 
 public class Repository {
 
@@ -52,7 +54,7 @@ public class Repository {
   }
 
   public Optional<Coordinates> loadParent(Match pom) {
-    Match p = pom.child("parent");
+    Match p = pom.child(PomTag.parent.toString());
     if (p.size() == 0) return Optional.empty();
     return Optional.of(new Coordinates(p));
   }
@@ -65,6 +67,11 @@ public class Repository {
       poms.add(pp);
       oc = loadParent(pp);
     }
+
+    Optional<Match> merged = poms.stream()
+        .map(pom -> NodeUtil.filterTop(pom, PomTag.exclusionTags()))
+        .reduce((pom0, pom1) ->
+        NodeUtil.merge(pom1, pom0));
 
     Match rootPom = poms.get(0);
     Optional<Coordinates> parentCoords = loadParent(rootPom);
@@ -90,5 +97,22 @@ public class Repository {
 
     resolvePomKeyReferences(ePom, resolveProperties(rawProps));
     return $(Xml.toXml(ePom));
+  }
+
+  private void loadRtTail(Coordinates root, Set<Artifact> resolved) {
+    Pom rootPom = new Pom(buildPom(root));
+    Artifact art = rootPom.getRootArtifact();
+    if (art.isRuntime() && !resolved.contains(art)) {
+      resolved.add(art);
+    }
+    for (Artifact rd : rootPom.getRuntimeDependencies()) {
+      loadRtTail(rd.getAt(), resolved);
+    }
+  }
+
+  public Set<Artifact> loadRuntimeArtifactsAt(Coordinates root) {
+    Set<Artifact> result = new TreeSet<>();
+    loadRtTail(root, result);
+    return result;
   }
 }

@@ -5,20 +5,20 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.vacco.myrmica.maven.Artifact.*;
-import static java.util.Objects.*;
+import static io.vacco.myrmica.maven.Constants.*;
 
 public class Pom {
 
-  private final Match ePom;
   private final Artifact rootArtifact;
   private final Set<Artifact> defaultVersions;
   private final Set<Artifact> dependencies;
 
   public Pom(Match ePom) {
-    this.ePom = requireNonNull(ePom);
     this.rootArtifact = Artifact.fromXml(ePom);
-    this.defaultVersions = artifactsOf(ePom.child("dependencyManagement").child("dependencies"));
-    this.dependencies = artifactsOf(ePom.child("dependencies"));
+    this.defaultVersions = artifactsOf(
+        ePom.child(PomTag.dependencyManagement.toString())
+            .child(PomTag.dependencies.toString()));
+    this.dependencies = artifactsOf(ePom.child(PomTag.dependencies.toString()));
   }
 
   public Set<Artifact> getRuntimeDependencies() {
@@ -36,5 +36,6 @@ public class Pom {
     return result;
   }
 
+  public Artifact getRootArtifact() { return rootArtifact; }
   @Override public String toString() { return rootArtifact.toExternalForm(); }
 }

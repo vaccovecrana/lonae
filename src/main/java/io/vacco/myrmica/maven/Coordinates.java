@@ -1,10 +1,8 @@
 package io.vacco.myrmica.maven;
 
 import org.joox.Match;
-
 import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.Objects;
 import static java.lang.String.format;
 
@@ -21,7 +19,9 @@ public class Coordinates {
   }
 
   public Coordinates(Match xml) {
-    this(xml.child("groupId").text(), xml.child("artifactId").text(), xml.child("version").text());
+    this(xml.child(Constants.PomTag.groupId.toString()).text(),
+        xml.child(Constants.PomTag.artifactId.toString()).text(),
+        xml.child(Constants.PomTag.version.toString()).text());
   }
 
   public URI getBaseUri(URI origin) {

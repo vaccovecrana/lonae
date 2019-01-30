@@ -14,7 +14,9 @@ public class MapUtil {
           List lr = (List) or;
           lr.add(ol);
           mapLeft.put(key, lr);
-        } else { mapMerge((Map) ol, (Map) or); }
+        } else {
+          mapMerge((Map) ol, (Map) or);
+        }
       } else { mapLeft.put(key, mapRight.get(key)); }
     }
     return mapLeft;
