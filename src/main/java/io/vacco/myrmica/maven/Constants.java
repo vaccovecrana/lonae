@@ -28,6 +28,8 @@ public class Constants {
     type, extension, packaging, classifier, language, addedToClasspath
   }
 
+  public enum Scope { compile, runtime }
+
   public static String [] stringValues(Enum ... args) {
     return Arrays.stream(args).map(Enum::toString).toArray(String[]::new);
   }

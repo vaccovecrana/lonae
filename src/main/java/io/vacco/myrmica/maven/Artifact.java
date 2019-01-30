@@ -15,13 +15,16 @@ public class Artifact implements Comparable<Artifact> {
 
   private final Coordinates at;
   private final Component metadata;
-  private final String scope;
   private final boolean optional;
-
+  private String scope;
   private final Set<Artifact> exclusions = new TreeSet<>();
 
   public Artifact(Match xml) {
     this.at = new Coordinates(requireNonNull(xml));
+    this.scope = xml.child(Constants.PomTag.scope.toString()).text();
+    this.optional = Boolean.parseBoolean(xml.child(Constants.PomTag.optional.toString()).text());
+    this.exclusions.addAll(artifactsOf(xml.child(Constants.PomTag.exclusions.toString())));
+
     Optional<Component> c = Component.forType(xml.child(ComponentTag.type.toString()).text());
     if (!c.isPresent()) { c = Component.forPackaging(xml.child(ComponentTag.packaging.toString()).text()); }
     if (!c.isPresent()) {
@@ -29,9 +32,7 @@ public class Artifact implements Comparable<Artifact> {
       c.get().setClassifier(xml);
     }
     this.metadata = c.get();
-    this.scope = xml.child(Constants.PomTag.scope.toString()).text();
-    this.optional = Boolean.parseBoolean(xml.child(Constants.PomTag.optional.toString()).text());
-    this.exclusions.addAll(artifactsOf(xml.child(Constants.PomTag.exclusions.toString())));
+    if (scope == null) { scope = Scope.compile.toString(); }
   }
 
   public String toExternalForm() {
@@ -49,7 +50,11 @@ public class Artifact implements Comparable<Artifact> {
 
   public URI getPackageUri(URI origin) { return getResourceUri(origin, format(".%s", metadata.type)); }
   public Path getLocalPackagePath(Path root) { return Paths.get(getPackageUri(root.toUri())); }
-  public boolean isRuntime() { return metadata.addedToClasspath; }
+  public boolean isRuntime() {
+    return metadata.addedToClasspath
+        && (scope.equals(Scope.compile.toString()) || scope.equals(Scope.runtime.toString()))
+        && !optional;
+  }
 
   @Override public int compareTo(Artifact o) { return toExternalForm().compareTo(o.toExternalForm()); }
   @Override public int hashCode() { return getBaseArtifactName().hashCode(); }

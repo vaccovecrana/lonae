@@ -29,7 +29,7 @@ public class MyricaSpec {
       assertEquals("http://central.maven.org/maven2/org/apache/spark/spark-core_2.12/2.4.0/spark-core_2.12-2.4.0.pom", remotePom.toString());
       assertEquals("/tmp/repo/org/apache/spark/spark-core_2.12/2.4.0/spark-core_2.12-2.4.0.pom", localPom.toString());
     });
-
+/*
     it("Can resolve properties from a POM definition for a module's coordinates.", () -> {
       Match pom = repo.buildPom(new Coordinates(
           // "com.fasterxml.jackson.core", "jackson-databind", "2.9.8"
@@ -46,11 +46,12 @@ public class MyricaSpec {
         System.out.println(d.getLocalPackagePath(p));
       });
     });
-
+*/
     it("Can resolve the dependency hierarchy of a module's coordinates.", () -> {
       Set<Artifact> rtDeps = repo.loadRuntimeArtifactsAt(new Coordinates(
+          "org.apache.spark", "spark-core_2.12", "2.4.0"
           // "com.fasterxml.jackson.core", "jackson-databind", "2.9.8"
-          "org.springframework.boot", "spring-boot-starter-web", "2.1.2.RELEASE"
+          // "org.springframework.boot", "spring-boot-starter-web", "2.1.2.RELEASE"
           // "org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4"
       ));
       assertFalse(rtDeps.isEmpty());

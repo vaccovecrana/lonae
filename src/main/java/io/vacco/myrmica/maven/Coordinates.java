@@ -6,7 +6,7 @@ import java.nio.file.*;
 import java.util.Objects;
 import static java.lang.String.format;
 
-public class Coordinates {
+public class Coordinates implements Comparable<Coordinates> {
 
   private final String groupId;
   private final String artifactId;
@@ -54,7 +54,7 @@ public class Coordinates {
   }
 
   @Override public String toString() { return toExternalForm(); }
-
+  @Override public int compareTo(Coordinates o) { return toExternalForm().compareTo(o.toExternalForm()); }
   @Override public int hashCode() { return toExternalForm().hashCode(); }
   @Override public boolean equals(Object o) {
     if (o instanceof Coordinates) {

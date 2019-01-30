@@ -20,6 +20,7 @@ public class Repository {
 
   private Path localRoot;
   private URI remoteRoot;
+  private final Map<Coordinates, Match> resolvedPoms = new TreeMap<>();
 
   public Repository(String localRootPath, String remotePath) {
     this.localRoot = Paths.get(requireNonNull(localRootPath));
@@ -48,7 +49,9 @@ public class Repository {
       }
       return $(target.toFile());
     }
-    catch (Exception e) { throw new IllegalStateException(e); }
+    catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   public Optional<Coordinates> loadParent(Match pom) {
@@ -57,34 +60,36 @@ public class Repository {
     return Optional.of(new Coordinates(p));
   }
 
-  public Match buildPom(Coordinates root) {
-    List<Match> poms = new ArrayList<>();
-    Optional<Coordinates> oc = Optional.of(root);
-    while (oc.isPresent()) {
-      Match pp = loadPom(oc.get());
-      poms.add(pp);
-      oc = loadParent(pp);
-    }
+  public Match buildPom(Coordinates c) {
+    return resolvedPoms.computeIfAbsent(c, coordinates -> {
+      List<Match> poms = new ArrayList<>();
+      Optional<Coordinates> oc = Optional.of(coordinates);
+      while (oc.isPresent()) {
+        Match pp = loadPom(oc.get());
+        poms.add(pp);
+        oc = loadParent(pp);
+      }
 
-    Optional<Match> ePom = poms.stream()
-        .map(pom -> NodeUtil.filterTop(pom, PomTag.exclusionTags()))
-        .reduce((pom0, pom1) ->
-        NodeUtil.merge(pom1, pom0));
-    Optional<Coordinates> parentCoords = loadParent(poms.get(0));
+      Optional<Coordinates> parentCoords = loadParent(poms.get(0));
+      Optional<Match> ePom = poms.stream()
+          .map(pom -> NodeUtil.filterTop(pom, PomTag.exclusionTags()))
+          .reduce((pom0, pom1) ->
+              NodeUtil.merge(pom1, pom0));
 
-    Map<String, String> rawProps = loadProperties(ePom.get());
-    rawProps.put("project.build.directory", new File(".").getAbsolutePath());
-    rawProps.put("project.groupId", root.getGroupId());
-    rawProps.put("project.artifactId", root.getArtifactId());
-    rawProps.put("project.version", root.getVersion());
-    if (parentCoords.isPresent()) {
-      rawProps.put("project.parent.groupId", parentCoords.get().getGroupId());
-      rawProps.put("project.parent.artifactId", parentCoords.get().getArtifactId());
-      rawProps.put("project.parent.version", parentCoords.get().getVersion());
-    }
+      Map<String, String> rawProps = loadProperties(ePom.get());
+      rawProps.put("project.build.directory", new File(".").getAbsolutePath());
+      rawProps.put("project.groupId", coordinates.getGroupId());
+      rawProps.put("project.artifactId", coordinates.getArtifactId());
+      rawProps.put("project.version", coordinates.getVersion());
+      if (parentCoords.isPresent()) {
+        rawProps.put("project.parent.groupId", parentCoords.get().getGroupId());
+        rawProps.put("project.parent.artifactId", parentCoords.get().getArtifactId());
+        rawProps.put("project.parent.version", parentCoords.get().getVersion());
+      }
 
-    resolvePomKeyReferences(ePom.get(), resolveProperties(rawProps));
-    return ePom.get();
+      resolvePomKeyReferences(ePom.get(), resolveProperties(rawProps));
+      return ePom.get();
+    });
   }
 
   private void loadRtTail(Coordinates root, Set<Artifact> resolved) {
