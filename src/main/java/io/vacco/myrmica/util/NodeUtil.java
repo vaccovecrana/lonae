@@ -12,7 +12,7 @@ public class NodeUtil {
     String tn = n.tag();
     if (tn == null) return null;
     if (tn.equals(PomTag.dependency.toString())) {
-      Artifact a = Artifact.fromXml(n);
+      Artifact a = new Artifact(n);
       return a.toExternalForm();
     } else if (tn.equals(PomTag.profile.toString())) {
       return n.child(PomTag.id.toString()).text();
@@ -30,15 +30,15 @@ public class NodeUtil {
     }).findFirst();
   }
 
-  private static Match mergeTail(Match l, Match r) {
+  public static Match merge(Match l, Match r) {
     for (Match rc : r.children().each()) {
       String key = idOf(rc);
       Optional<Match> lc = childWithId(l, key);
       if (!lc.isPresent()) {
         l.append(rc);
       }
-      else if (lc.get().xpath("./*").size() > 0) {
-        mergeTail(lc.get(), rc);
+      else if (isTextContent(lc.get())) {
+        merge(lc.get(), rc);
       } else {
         lc.get().remove();
         l.append(rc);
@@ -47,14 +47,15 @@ public class NodeUtil {
     return l;
   }
 
-  public static Match merge(Match l, Match r) {
-    return mergeTail(l, r);
-  }
-
   public static Match filterTop(Match n, String ... tagExclusions) {
     for (String tagExclusion : tagExclusions) {
       n.child(tagExclusion).remove();
     }
     return n;
+  }
+
+  public static boolean isTextContent(Match n) {
+    int size = n.xpath("./*").size();
+    return size > 0;
   }
 }

@@ -1,7 +1,5 @@
 package io.vacco.myrmica.maven;
 
-import com.github.underscore.lodash.Xml;
-import io.vacco.myrmica.util.MapUtil;
 import io.vacco.myrmica.util.NodeUtil;
 import org.joox.Match;
 import org.slf4j.*;
@@ -68,23 +66,13 @@ public class Repository {
       oc = loadParent(pp);
     }
 
-    Optional<Match> merged = poms.stream()
+    Optional<Match> ePom = poms.stream()
         .map(pom -> NodeUtil.filterTop(pom, PomTag.exclusionTags()))
         .reduce((pom0, pom1) ->
         NodeUtil.merge(pom1, pom0));
+    Optional<Coordinates> parentCoords = loadParent(poms.get(0));
 
-    Match rootPom = poms.get(0);
-    Optional<Coordinates> parentCoords = loadParent(rootPom);
-    Map<String, Object> ePom = MapUtil.keyFilter(poms.stream()
-            .map(pom -> Xml.fromXml(pom.toString()))
-            .map(pom -> (Map<String, Object>) pom)
-            .reduce((pom0, pom1) -> MapUtil.mapMerge(pom1, pom0)).get(),
-        "-", "#", "build", "description", "developers",
-        "distributionManagement", "inceptionYear", "issueManagement", "licenses", "mailingLists",
-        "modules", "organization", "parent", "pluginRepositories", "reporting", "repositories",
-        "scm", "url");
-
-    Map<String, String> rawProps = loadProperties(ePom);
+    Map<String, String> rawProps = loadProperties(ePom.get());
     rawProps.put("project.build.directory", new File(".").getAbsolutePath());
     rawProps.put("project.groupId", root.getGroupId());
     rawProps.put("project.artifactId", root.getArtifactId());
@@ -95,8 +83,8 @@ public class Repository {
       rawProps.put("project.parent.version", parentCoords.get().getVersion());
     }
 
-    resolvePomKeyReferences(ePom, resolveProperties(rawProps));
-    return $(Xml.toXml(ePom));
+    resolvePomKeyReferences(ePom.get(), resolveProperties(rawProps));
+    return ePom.get();
   }
 
   private void loadRtTail(Coordinates root, Set<Artifact> resolved) {

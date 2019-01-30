@@ -4,12 +4,13 @@ import java.util.Arrays;
 
 public class Constants {
 
+  public static final String DEFAULT_ARTIFACT_TYPE = "jar";
+
   public enum PomTag {
     id,
-    groupId, artifactId, version,
-    classifier, packaging, scope, optional, type,
+    groupId, artifactId, version, scope, optional,
 
-    dependencyManagement, dependencies, dependency, exclusions, exclusion,
+    dependencyManagement, dependencies, dependency, exclusions, exclusion, properties,
 
     build, description, developers,
     distributionManagement, inceptionYear, issueManagement, licenses, mailingLists,
@@ -23,23 +24,8 @@ public class Constants {
     }
   }
 
-  /**
-   * @see <a href="https://maven.apache.org/ref/3.6.0/maven-core/artifact-handlers.html}">artifact-handlers</a>
-   */
-  public enum PackageType { //
-    pom("pom"), jar("jar"), mavenPlugin("maven-plugin"),
-    ejb("ejb"), war("war"), ear("ear"), rar("rar");
-
-    private final String label;
-    PackageType(String label) { this.label = label; }
-    @Override public String toString() { return label; }
-  }
-
-  /**
-   * @see <a href="https://maven.apache.org/pom.html#Maven_Coordinates">Maven Coordinates</a>
-   */
-  public enum Scope {
-    compile, provided, runtime, test, system
+  public enum ComponentTag {
+    type, extension, packaging, classifier, language, addedToClasspath
   }
 
   public static String [] stringValues(Enum ... args) {

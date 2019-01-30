@@ -12,7 +12,7 @@ apply plugin: 'maven-publish'
 repositories { jcenter() }
 
 group 'io.vacco.myrmica'
-version 0.05
+version '0.1.0'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -20,7 +20,6 @@ targetCompatibility = 1.8
 dependencies {
   compile "org.slf4j:slf4j-api:1.7.25"
   compile "org.jooq:joox-java-6:1.6.0"
-  compile "com.github.javadev:underscore8:1.10"
 
   testCompile "org.slf4j:slf4j-simple:1.7.25"
   testCompile "junit:junit:4.12"

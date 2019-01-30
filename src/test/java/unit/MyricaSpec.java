@@ -1,12 +1,6 @@
 package unit;
 
-import com.github.underscore.lodash.U;
-import com.github.underscore.lodash.Xml;
-import io.vacco.myrica.core.*;
-import io.vacco.myrmica.maven.Artifact;
-import io.vacco.myrmica.maven.Coordinates;
-import io.vacco.myrmica.maven.Pom;
-import io.vacco.myrmica.maven.Repository;
+import io.vacco.myrmica.maven.*;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.joox.Match;

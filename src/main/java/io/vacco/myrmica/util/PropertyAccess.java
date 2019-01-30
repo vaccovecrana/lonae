@@ -1,11 +1,12 @@
 package io.vacco.myrmica.util;
 
+import org.joox.Match;
 import org.slf4j.*;
 import java.util.*;
 import java.util.regex.*;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
+import static io.vacco.myrmica.maven.Constants.*;
 
 public class PropertyAccess {
 
@@ -45,27 +46,13 @@ public class PropertyAccess {
     return removeVarTokens(property);
   }
 
-  public static void resolvePomKeyReferences(Map<String, Object> pom, Map<String, String> resolvedKeys) {
-    pom.keySet().forEach(k -> {
-      Object o = pom.get(k);
-      if (o instanceof String) {
-        String keyVal = (String) pom.get(k);
-        if (keyVal.contains("${")) {
-          pom.put(k, dereference(keyVal, resolvedKeys));
-        }
-      } else if (o instanceof Map) {
-        Map<String, Object> m0 = (Map<String, Object>) o;
-        resolvePomKeyReferences(m0, resolvedKeys);
-      } else if (o instanceof List) {
-        pom.put(k, ((List) o).stream().map(it -> {
-          if (it instanceof Map) {
-            Map m0 = (Map) it;
-            resolvePomKeyReferences(m0, resolvedKeys);
-          }
-          return it;
-        }).collect(Collectors.toList()));
+  public static void resolvePomKeyReferences(Match root, Map<String, String> resolvedKeys) {
+    if (!NodeUtil.isTextContent(root)) {
+      String keyVal = root.text();
+      if (keyVal.contains("${")) {
+        root.text(dereference(keyVal, resolvedKeys));
       }
-    });
+    } else { root.children().each().forEach(c -> resolvePomKeyReferences(c, resolvedKeys)); }
   }
 
   public static String resolveKeyReferences(String key, Map<String, String> raw) {
@@ -94,16 +81,12 @@ public class PropertyAccess {
     return resolved;
   }
 
-  public static Map<String, String> loadProperties(Map<String, Object> raw) {
-    requireNonNull(raw);
+  public static Map<String, String> loadProperties(Match rootPom) {
+    requireNonNull(rootPom);
     Map<String, String> result = new TreeMap<>();
-    Map<String, Object> proj = (Map<String, Object>) raw.get("project");
-    Map<String, Object> props = (Map<String, Object>) proj.get("properties");
-    props.keySet().forEach(k -> {
-      Object o = props.get(k);
-      if (o instanceof String) result.put(k, (String) props.get(k));
-      else result.put(k, "");
-    });
+    for (Match prop : rootPom.child(PomTag.properties.toString()).children().each()) {
+      result.put(prop.tag(), prop.text());
+    }
     return result;
   }
 }

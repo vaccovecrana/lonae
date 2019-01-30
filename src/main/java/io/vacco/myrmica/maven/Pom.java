@@ -14,7 +14,7 @@ public class Pom {
   private final Set<Artifact> dependencies;
 
   public Pom(Match ePom) {
-    this.rootArtifact = Artifact.fromXml(ePom);
+    this.rootArtifact = new Artifact(ePom);
     this.defaultVersions = artifactsOf(
         ePom.child(PomTag.dependencyManagement.toString())
             .child(PomTag.dependencies.toString()));
