@@ -11,27 +11,26 @@ import java.util.stream.Collectors;
 import static java.util.Objects.requireNonNull;
 import static java.lang.String.format;
 
-/**
- * NOTE: for now, only jar artifacts (the default Maven dependency type) are supported.
- */
 public class Artifact implements Comparable<Artifact> {
 
   private final Coordinates at;
   private final String classifier;
+  private final String packaging;
   private final String scope;
   private final boolean optional;
 
   private final Set<Artifact> exclusions = new TreeSet<>();
 
-  public Artifact(Coordinates at, String classifier, String scope, boolean optional) {
+  public Artifact(Coordinates at, String classifier, String packaging, String scope, boolean optional) {
     this.at = requireNonNull(at);
+    this.packaging = packaging != null ? packaging : "jar";
     this.classifier = classifier;
     this.scope = scope;
     this.optional = optional;
   }
 
   public String toExternalForm() {
-    return format("%s/%s", at.toExternalForm(), getBaseArtifactName());
+    return format("%s/%s.%s", at.toExternalForm(), getBaseArtifactName(), packaging);
   }
 
   public String getBaseArtifactName() {
@@ -42,8 +41,8 @@ public class Artifact implements Comparable<Artifact> {
     return at.getBaseUri(origin).resolve(format("%s%s", getBaseArtifactName(), resourceExtension));
   }
 
-  public URI getJarUri(URI origin) { return getResourceUri(origin, ".jar"); }
-  public Path getLocalJarPath(Path root) { return Paths.get(getJarUri(root.toUri())); }
+  public URI getPackageUri(URI origin) { return getResourceUri(origin, format(".%s", packaging)); }
+  public Path getLocalPackagePath(Path root) { return Paths.get(getPackageUri(root.toUri())); }
 
   public boolean isRuntime() {
     if (optional) return false;
@@ -51,10 +50,7 @@ public class Artifact implements Comparable<Artifact> {
     return scope == null || !scope.equalsIgnoreCase("provided");
   }
 
-  @Override public int compareTo(Artifact o) {
-    return toExternalForm().compareTo(o.toExternalForm());
-  }
-
+  @Override public int compareTo(Artifact o) { return toExternalForm().compareTo(o.toExternalForm()); }
   @Override public int hashCode() { return getBaseArtifactName().hashCode(); }
   @Override public boolean equals(Object o) {
     if (o instanceof Artifact) {
@@ -73,7 +69,8 @@ public class Artifact implements Comparable<Artifact> {
   }
 
   public static Artifact fromXml(Match xml) {
-    Artifact a = new Artifact(new Coordinates(xml), xml.child("classifier").text(),
+    Artifact a = new Artifact(new Coordinates(xml),
+        xml.child("classifier").text(), xml.child("packaging").text(),
         xml.child("scope").text(), xml.child("optional").size() > 0);
     a.exclusions.addAll(artifactsOf(xml.child("exclusions")));
     return a;

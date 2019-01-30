@@ -40,16 +40,16 @@ public class MyricaSpec {
           // "com.fasterxml.jackson.core", "jackson-databind", "2.9.8"
           "org.apache.spark", "spark-core_2.12", "2.4.0"
           // "org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4"
+          // "org.springframework.boot", "spring-boot-starter-web", "2.1.2.RELEASE"
       ));
       // Map<String, String> fullProps = repo.collectProperties(pom);
       // assertFalse(fullProps.isEmpty());
       Pom p0 = new Pom(pom);
       System.out.println();
       Path p = Paths.get("/tmp/repo/");
-      p0.getDefaultVersions().forEach(d -> {
-        System.out.println(d.getLocalJarPath(p));
+      p0.getRuntimeDependencies().forEach(d -> {
+        System.out.println(d.getLocalPackagePath(p));
       });
-
     });
 /*
 

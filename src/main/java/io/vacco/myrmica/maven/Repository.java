@@ -3,8 +3,7 @@ package io.vacco.myrmica.maven;
 import com.github.underscore.lodash.Xml;
 import io.vacco.myrmica.util.MapUtil;
 import org.joox.Match;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.slf4j.*;
 
 import java.io.File;
 import java.net.*;
@@ -55,15 +54,10 @@ public class Repository {
   public Optional<Coordinates> loadParent(Match pom) {
     Match p = pom.child("parent");
     if (p.size() == 0) return Optional.empty();
-    return Optional.of(new Coordinates(
-        p.child("groupId").text(),
-        p.child("artifactId").text(),
-        p.child("version").text()
-    ));
+    return Optional.of(new Coordinates(p));
   }
 
   public Match buildPom(Coordinates root) {
-
     List<Match> poms = new ArrayList<>();
     Optional<Coordinates> oc = Optional.of(root);
     while (oc.isPresent()) {
@@ -97,5 +91,4 @@ public class Repository {
     resolvePomKeyReferences(ePom, resolveProperties(rawProps));
     return $(Xml.toXml(ePom));
   }
-
 }

@@ -36,7 +36,7 @@ public class PropertyAccess {
       if (propVal == null) {
         propVal = System.getProperty(keyRef);
         if (propVal == null) {
-          log.warn("Unresolved property usage: [{}]", property);
+          if (log.isDebugEnabled()) { log.debug("Unresolved property usage: [{}]", property); }
           propVal = "?";
         }
       }
@@ -75,7 +75,7 @@ public class PropertyAccess {
       if (rawValue == null) {
         rawValue = System.getProperty(key);
         if (rawValue == null) {
-          log.warn("Unresolved property: [{}]", key);
+          if (log.isDebugEnabled()) { log.warn("Unresolved property: [{}]", key); }
           return "?";
         }
       }
