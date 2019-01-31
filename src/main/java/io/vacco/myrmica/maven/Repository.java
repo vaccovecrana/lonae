@@ -114,6 +114,12 @@ public class Repository {
     });
   }
 
+  /**
+   * @see
+   *   <a href="https://maven.apache.org/plugins/maven-dependency-plugin/examples/resolving-conflicts-using-the-dependency-tree.html">
+   *     resolving-conflicts-using-the-dependency-tree.html
+   *   </a>
+   */
   private void loadRtTail(DependencyNode context, Set<Artifact> resolved) {
     if (context.artifact.isRuntime()) {
       resolved.add(context.artifact);
@@ -123,9 +129,6 @@ public class Repository {
       if (!rd.isRuntime()) continue;
       if (context.excludes(rd)) continue;
       if (context.isTopLevelOverride(rd)) continue;
-      if (rd.getMetadata().classifier != null) {
-        resolved.add(rd);
-      }
       if (!resolved.contains(rd)) {
         loadRtTail(new DependencyNode(buildPom(rd.getAt()), rd, context), resolved);
       }

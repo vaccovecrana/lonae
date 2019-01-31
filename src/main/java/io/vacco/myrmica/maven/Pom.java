@@ -33,7 +33,7 @@ public class Pom {
       Optional<Artifact> oda = defaultVersions.stream()
           .filter(dv -> dv.getAt().matchesGroupAndArtifact(d0.getAt())).findFirst();
       if (oda.isPresent()) {
-        d0.getAt().setVersion(oda.get().getAt().getVersion());
+        d0.getAt().setVersion(oda.get().getAt().getVersion()); // TODO it's likely that we'll need to import default exclusion metadata here as well...
         return d0;
       }
       log.warn("Unable to resolve version metadata for {}", d0);

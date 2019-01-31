@@ -78,7 +78,6 @@ public class Artifact implements Comparable<Artifact> {
 
   public Coordinates getAt() { return at; }
   public Component getMetadata() { return metadata; }
-  public Match getXml() { return xml; }
 
   public boolean excludes(Artifact a) {
     boolean excluded = exclusions.stream().anyMatch(e -> e.getAt().matchesGroupAndArtifact(a.getAt()));

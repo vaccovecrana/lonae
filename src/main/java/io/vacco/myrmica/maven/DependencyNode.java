@@ -25,6 +25,10 @@ public class DependencyNode {
     return false;
   }
 
+  /*
+    TODO it's likely that top level dependency override resolution also needs to occur in the context of the immediate
+    parent node?
+   */
   boolean isTopLevelOverride(Artifact a) {
     DependencyNode n0 = this;
     DependencyNode top = this;

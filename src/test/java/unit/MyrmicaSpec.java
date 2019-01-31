@@ -5,11 +5,13 @@ import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.joox.Match;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.slf4j.*;
+
+import java.util.Set;
 
 import static j8spec.J8Spec.*;
 import static org.joox.JOOX.*;
+import static org.junit.Assert.*;
 
 @DefinedOrder
 @RunWith(J8SpecRunner.class)
@@ -49,11 +51,11 @@ public class MyrmicaSpec {
       Set<Artifact> rtDeps = repo.loadRuntimeArtifactsAt(spark);
       assertFalse(rtDeps.isEmpty());
     });
+*/
     it("Can resolve dependencies for a module's coordinates which also specify native dependencies.", () -> {
       Set<Artifact> openCvArt = repo.loadRuntimeArtifactsAt(opencv);
       assertFalse(openCvArt.isEmpty());
     });
-*/
     it("Can install target runtime artifacts for large frameworks.", () -> {
       // ResolutionStats.installAndMatch(repo, spring, "/org.springframework.boot^spring-boot-starter-web^2.1.2.RELEASE.mvn");
       ResolutionStats.installAndMatch(repo, spark, "/org.apache.spark^spark-core_2.12^2.4.0.mvn");
