@@ -47,7 +47,7 @@ class PropertyAccess {
   }
 
   static void resolvePomKeyReferences(Match root, Map<String, String> resolvedKeys) {
-    if (!NodeUtil.isTextContent(root)) {
+    if (NodeUtil.isTextContent(root)) {
       String keyVal = root.text();
       if (keyVal.contains("${")) {
         root.text(dereference(keyVal, resolvedKeys));

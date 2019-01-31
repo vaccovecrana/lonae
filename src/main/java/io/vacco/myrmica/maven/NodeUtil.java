@@ -36,10 +36,10 @@ public class NodeUtil {
         l.append(rc);
       }
       else if (isTextContent(lc.get())) {
-        merge(lc.get(), rc);
-      } else {
         lc.get().remove();
         l.append(rc);
+      } else {
+        merge(lc.get(), rc);
       }
     }
     return l;
@@ -54,6 +54,6 @@ public class NodeUtil {
 
   static boolean isTextContent(Match n) {
     int size = n.xpath("./*").size();
-    return size > 0;
+    return size == 0;
   }
 }
