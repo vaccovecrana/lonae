@@ -19,7 +19,7 @@ public class Repository {
 
   private Path localRoot;
   private URI remoteRoot;
-  private final Map<Coordinates, Match> resolvedPoms = new TreeMap<>();
+  private final Map<Coordinates, Pom> resolvedPoms = new TreeMap<>();
 
   public Repository(String localRootPath, String remotePath) {
     this.localRoot = Paths.get(requireNonNull(localRootPath));
@@ -59,7 +59,7 @@ public class Repository {
     return Optional.of(new Coordinates(p));
   }
 
-  private Match buildPom(Coordinates c) {
+  public Pom buildPom(Coordinates c) {
     return resolvedPoms.computeIfAbsent(c, coordinates -> {
       List<Match> poms = new ArrayList<>();
       Optional<Coordinates> oc = Optional.of(coordinates);
@@ -92,7 +92,7 @@ public class Repository {
       }
 
       resolvePomKeyReferences(ePom.get(), resolveProperties(rawProps));
-      return ePom.get();
+      return new Pom(ePom.get());
     });
   }
 
@@ -103,14 +103,14 @@ public class Repository {
       if (context.isTopLevelOverride(rd)) return;
       if (rd.getMetadata().classifier != null) { resolved.add(rd); }
       if (!resolved.contains(rd)) {
-        loadRtTail(new DependencyNode(new Pom(buildPom(rd.getAt())), rd, context), resolved);
+        loadRtTail(new DependencyNode(buildPom(rd.getAt()), rd, context), resolved);
       }
     }
   }
 
   public Set<Artifact> loadRuntimeArtifactsAt(Coordinates root) {
     Set<Artifact> result = new TreeSet<>();
-    DependencyNode n0 = new DependencyNode(new Pom(buildPom(root)));
+    DependencyNode n0 = new DependencyNode(buildPom(root));
     loadRtTail(n0, result);
     return result;
   }
