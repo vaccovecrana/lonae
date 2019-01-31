@@ -32,7 +32,7 @@ public class DependencyNode {
       if (n0.parent != null) top = n0.parent;
       n0 = n0.parent;
     }
-    boolean overrides = top.pom.getDependencies(false).stream().anyMatch(ta -> {
+    boolean overrides = top.pom.getDependencies().stream().anyMatch(ta -> {
       boolean sameCoords = ta.getAt().matchesGroupAndArtifact(a.getAt());
       boolean diffVer = !ta.getAt().getVersion().equals(a.getAt().getVersion());
       return sameCoords && diffVer;

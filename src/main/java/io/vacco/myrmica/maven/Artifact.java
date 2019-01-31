@@ -17,10 +17,13 @@ public class Artifact implements Comparable<Artifact> {
   private final Component metadata;
   private final boolean optional;
   private String scope;
+
   private final Set<Artifact> exclusions = new TreeSet<>();
+  private final Match xml;
 
   public Artifact(Match xml) {
-    this.at = new Coordinates(requireNonNull(xml));
+    this.xml = requireNonNull(xml);
+    this.at = new Coordinates(xml);
     this.scope = xml.child(Constants.PomTag.scope.toString()).text();
     this.optional = Boolean.parseBoolean(xml.child(Constants.PomTag.optional.toString()).text());
     this.exclusions.addAll(artifactsOf(xml.child(Constants.PomTag.exclusions.toString())));
@@ -72,6 +75,8 @@ public class Artifact implements Comparable<Artifact> {
 
   public Coordinates getAt() { return at; }
   public Component getMetadata() { return metadata; }
+  public Match getXml() { return xml; }
+
   public boolean excludes(Artifact a) {
     boolean excluded = exclusions.stream().anyMatch(e -> e.getAt().matchesGroupAndArtifact(a.getAt()));
     return excluded;

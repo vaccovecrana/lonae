@@ -35,11 +35,10 @@ public class MyrmicaSpec {
       assertEquals("http://central.maven.org/maven2/org/apache/spark/spark-core_2.12/2.4.0/spark-core_2.12-2.4.0.pom", remotePom.toString());
       assertEquals("/tmp/repo/org/apache/spark/spark-core_2.12/2.4.0/spark-core_2.12-2.4.0.pom", localPom.toString());
     });
-    it("Can resolve properties from a POM definition for a module's coordinates.", () -> {
+    it("Can resolve dependencies from a POM definition for a module's coordinates.", () -> {
       Pom pom = repo.buildPom(spring);
       Path p = Paths.get(localRepo);
-      pom.getDependencies(true)
-          .forEach(d -> log.info(d.getLocalPackagePath(p).toString()));
+      pom.getDependencies().forEach(d -> log.info(d.getLocalPackagePath(p).toString()));
     });
     it("Can resolve the dependency hierarchy of a module's coordinates.", () -> {
       Set<Artifact> rtDeps = repo.loadRuntimeArtifactsAt(spark);

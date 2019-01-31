@@ -116,12 +116,17 @@ public class Repository {
   }
 
   private void loadRtTail(DependencyNode context, Set<Artifact> resolved) {
-    if (context.artifact.isRuntime()) { resolved.add(context.artifact); }
-    Set<Artifact> deps = context.pom.getDependencies(true);
+    if (context.artifact.isRuntime()) {
+      resolved.add(context.artifact);
+    }
+    Set<Artifact> deps = context.pom.getDependencies();
     for (Artifact rd : deps) {
-      if (context.excludes(rd)) return;
-      if (context.isTopLevelOverride(rd)) return;
-      if (rd.getMetadata().classifier != null) { resolved.add(rd); }
+      if (!rd.isRuntime()) continue;
+      if (context.excludes(rd)) continue;
+      if (context.isTopLevelOverride(rd)) continue;
+      if (rd.getMetadata().classifier != null) {
+        resolved.add(rd);
+      }
       if (!resolved.contains(rd)) {
         loadRtTail(new DependencyNode(buildPom(rd.getAt()), rd, context), resolved);
       }
@@ -137,6 +142,7 @@ public class Repository {
 
   public Map<Artifact, Path> installRuntimeArtifactsAt(Coordinates root) {
     Set<Artifact> result = loadRuntimeArtifactsAt(root);
-    return result.parallelStream().collect(Collectors.toMap(Function.identity(), this::install));
+    return new TreeMap<>(result.parallelStream()
+        .collect(Collectors.toMap(Function.identity(), this::install)));
   }
 }

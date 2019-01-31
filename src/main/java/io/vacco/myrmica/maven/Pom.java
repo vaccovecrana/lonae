@@ -1,6 +1,9 @@
 package io.vacco.myrmica.maven;
 
 import org.joox.Match;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -8,6 +11,8 @@ import static io.vacco.myrmica.maven.Artifact.*;
 import static io.vacco.myrmica.maven.Constants.*;
 
 public class Pom {
+
+  private static final Logger log = LoggerFactory.getLogger(Pom.class);
 
   private final Artifact rootArtifact;
   private final Set<Artifact> defaultVersions;
@@ -21,16 +26,21 @@ public class Pom {
     this.dependencies = artifactsOf(ePom.child(PomTag.dependencies.toString()));
   }
 
-  public Set<Artifact> getDependencies(boolean onlyRuntime) {
+  public Set<Artifact> getDependencies() {
     Set<Artifact> result = new TreeSet<>();
-    result.addAll(dependencies.stream()
-        .filter(a -> !onlyRuntime || a.isRuntime())
-        .map(d0 -> {
-          if (d0.getAt().getVersion() != null) return Optional.of(d0);
-          return defaultVersions.stream()
-              .filter(dv -> dv.getAt().matchesGroupAndArtifact(d0.getAt()))
-              .findFirst();
-        }).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toSet()));
+    result.addAll(dependencies.stream().map(d0 -> {
+      if (d0.getAt().getVersion() != null) return d0;
+      Optional<Artifact> od = defaultVersions.stream()
+          .filter(dv -> dv.getAt().matchesGroupAndArtifact(d0.getAt()))
+          .findFirst();
+      if (od.isPresent()) {
+        Artifact da = od.get();
+        Match merged = NodeUtil.merge(d0.getXml(), da.getXml());
+        return new Artifact(merged);
+      }
+      log.warn("Unable to resolve dependency metadata for {}", d0);
+      return null;
+    }).filter(Objects::nonNull).collect(Collectors.toSet()));
     return result;
   }
 
