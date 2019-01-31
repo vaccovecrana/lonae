@@ -1,0 +1,8 @@
+com.fasterxml.jackson.module:jackson-module-scala_2.12:jar:2.6.7.1:compile
+org.scala-lang:scala-library:jar:2.12.1:compile
+org.scala-lang:scala-reflect:jar:2.12.1:compile
+com.fasterxml.jackson.core:jackson-core:jar:2.6.7:compile
+com.fasterxml.jackson.core:jackson-annotations:jar:2.6.7:compile
+com.fasterxml.jackson.core:jackson-databind:jar:2.6.7:compile
+com.fasterxml.jackson.module:jackson-module-paranamer:jar:2.7.9:compile
+com.thoughtworks.paranamer:paranamer:jar:2.8:compile

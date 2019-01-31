@@ -34,6 +34,16 @@ public class Component implements Cloneable {
     if (packaging == null) packaging = type;
   }
 
+  public String toExternalForm() {
+    return format("[%s%s%s%s%s%s]", format("t: %s", type),
+        extension != null ? format(", ext: %s", extension) : "",
+        packaging != null ? format(", pkg: %s", packaging) : "",
+        classifier != null ? format(", clf: %s", classifier) : "",
+        language != null ? format(", lng: %s", language) : "",
+        format(", rt: %s", addedToClasspath)
+    );
+  }
+
   public void setClassifier(Match n) {
     String cl = n.child(ComponentTag.classifier.toString()).text();
     this.classifier = cl != null ? cl : this.classifier;
@@ -66,13 +76,5 @@ public class Component implements Cloneable {
     return result.map(Component::cloneOf);
   }
 
-  @Override public String toString() {
-    return format("comp[%s%s%s%s%s%s]", type,
-        extension != null ? format(", ext: %s", extension) : "",
-        packaging != null ? format(", pkg: %s", packaging) : "",
-        classifier != null ? format(", cls: %s", classifier) : "",
-        language != null ? format(", lng: %s", language) : "",
-        format(", rt: %s", addedToClasspath)
-    );
-  }
+  @Override public String toString() { return toExternalForm(); }
 }

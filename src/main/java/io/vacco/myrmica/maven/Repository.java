@@ -92,8 +92,7 @@ public class Repository {
       Optional<Coordinates> parentCoords = loadParent(poms.get(0));
       Optional<Match> ePom = poms.stream()
           .map(pom -> NodeUtil.filterTop(pom, PomTag.exclusionTags()))
-          .reduce((pom0, pom1) ->
-              NodeUtil.merge(pom1, pom0));
+          .reduce((pom0, pom1) -> NodeUtil.merge(pom1, pom0));
 
       if (rootPackaging != null) {
         ePom.get().child(ComponentTag.packaging.toString()).text(rootPackaging);

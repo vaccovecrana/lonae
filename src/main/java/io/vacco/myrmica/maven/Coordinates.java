@@ -10,7 +10,7 @@ public class Coordinates implements Comparable<Coordinates> {
 
   private final String groupId;
   private final String artifactId;
-  private final String version;
+  private String version;
 
   public Coordinates(String groupId, String artifactId, String version) {
     this.groupId = Objects.requireNonNull(groupId);
@@ -74,4 +74,5 @@ public class Coordinates implements Comparable<Coordinates> {
   public String getGroupId() { return groupId; }
   public String getArtifactId() { return artifactId; }
   public String getVersion() { return version; }
+  public void setVersion(String version) { this.version = Objects.requireNonNull(version); }
 }

@@ -3,16 +3,13 @@ package unit;
 import io.vacco.myrmica.maven.*;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
+import org.joox.Match;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
-import java.nio.file.*;
-import java.util.*;
-
 import static j8spec.J8Spec.*;
-import static org.junit.Assert.*;
+import static org.joox.JOOX.*;
 
 @DefinedOrder
 @RunWith(J8SpecRunner.class)
@@ -29,6 +26,14 @@ public class MyrmicaSpec {
     Coordinates spring = new Coordinates("org.springframework.boot", "spring-boot-starter-web", "2.1.2.RELEASE");
     Coordinates opencv = new Coordinates("org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4");
 
+    it("Can merge two XML documents.", () -> {
+      Match logbackParent = $(MyrmicaSpec.class.getResourceAsStream("/logback-parent.pom"));
+      Match logbackClassic = $(MyrmicaSpec.class.getResourceAsStream("/logback-classic.pom"));
+      Match merged = NodeUtil.merge(logbackParent, logbackClassic);
+      log.info(merged.toString());
+    });
+
+/*
     it("Can build local/remote paths for Maven coordinates.", () -> {
       URI remotePom = spark.getPomUri(new URI(M2));
       Path localPom = spark.getLocalPomPath(Paths.get(localRepo));
@@ -48,10 +53,10 @@ public class MyrmicaSpec {
       Set<Artifact> openCvArt = repo.loadRuntimeArtifactsAt(opencv);
       assertFalse(openCvArt.isEmpty());
     });
-    it("Can install target runtime artifacts for a module's coordinates.", () -> {
-      Map<Artifact, Path> binaries = repo.installRuntimeArtifactsAt(spring);
-      assertFalse(binaries.isEmpty());
-      binaries.values().forEach(p -> assertTrue(p.toFile().exists() && p.toFile().isFile()));
+*/
+    it("Can install target runtime artifacts for large frameworks.", () -> {
+      // ResolutionStats.installAndMatch(repo, spring, "/org.springframework.boot^spring-boot-starter-web^2.1.2.RELEASE.mvn");
+      ResolutionStats.installAndMatch(repo, spark, "/org.apache.spark^spark-core_2.12^2.4.0.mvn");
     });
   }
 }

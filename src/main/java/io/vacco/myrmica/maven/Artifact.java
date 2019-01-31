@@ -44,8 +44,9 @@ public class Artifact implements Comparable<Artifact> {
   }
 
   public String toExternalForm() {
-    return format("%s/%s%s", at.toExternalForm(), getBaseArtifactName(),
-        metadata != null ? format(".%s (%s)", metadata.type, metadata.packaging) : "");
+    return format("%s/%s %s%s", at.toExternalForm(), getBaseArtifactName(),
+        metadata != null ? metadata.toExternalForm() : "",
+        scope != null ? format(", %s", scope) : "");
   }
 
   public URI getResourceUri(URI origin, String resourceExtension) {
@@ -68,7 +69,9 @@ public class Artifact implements Comparable<Artifact> {
   @Override public boolean equals(Object o) {
     if (o instanceof Artifact) {
       Artifact a0 = (Artifact) o;
-      return getBaseArtifactName().equals(a0.getBaseArtifactName());
+      String ef0 = toExternalForm();
+      String ef1 = a0.toExternalForm();
+      return ef0.equals(ef1);
     }
     return false;
   }
@@ -83,8 +86,7 @@ public class Artifact implements Comparable<Artifact> {
   }
 
   @Override public String toString() {
-    return format("[%s%s%s]", toExternalForm(),
-        scope != null ? format(", %s", scope) : "",
+    return format("[%s%s]", toExternalForm(),
         exclusions.size() > 0 ? format(" {-%s}", exclusions.size()) : "");
   }
 

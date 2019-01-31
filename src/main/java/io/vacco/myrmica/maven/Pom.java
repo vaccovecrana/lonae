@@ -30,15 +30,13 @@ public class Pom {
     Set<Artifact> result = new TreeSet<>();
     result.addAll(dependencies.stream().map(d0 -> {
       if (d0.getAt().getVersion() != null) return d0;
-      Optional<Artifact> od = defaultVersions.stream()
-          .filter(dv -> dv.getAt().matchesGroupAndArtifact(d0.getAt()))
-          .findFirst();
-      if (od.isPresent()) {
-        Artifact da = od.get();
-        Match merged = NodeUtil.merge(d0.getXml(), da.getXml());
-        return new Artifact(merged);
+      Optional<Artifact> oda = defaultVersions.stream()
+          .filter(dv -> dv.getAt().matchesGroupAndArtifact(d0.getAt())).findFirst();
+      if (oda.isPresent()) {
+        d0.getAt().setVersion(oda.get().getAt().getVersion());
+        return d0;
       }
-      log.warn("Unable to resolve dependency metadata for {}", d0);
+      log.warn("Unable to resolve version metadata for {}", d0);
       return null;
     }).filter(Objects::nonNull).collect(Collectors.toSet()));
     return result;
