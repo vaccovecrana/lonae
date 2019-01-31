@@ -49,5 +49,10 @@ public class MyrmicaSpec {
       Set<Artifact> openCvArt = repo.loadRuntimeArtifactsAt(opencv);
       assertFalse(openCvArt.isEmpty());
     });
+    it("Can install target runtime artifacts for a module's coordinates.", () -> {
+      Map<Artifact, Path> binaries = repo.installRuntimeArtifactsAt(spring);
+      assertFalse(binaries.isEmpty());
+      binaries.values().forEach(p -> assertTrue(p.toFile().exists() && p.toFile().isFile()));
+    });
   }
 }

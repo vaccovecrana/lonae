@@ -7,6 +7,8 @@ import java.io.File;
 import java.net.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.*;
 import static org.joox.JOOX.*;
@@ -45,11 +47,28 @@ public class Repository {
         URI remotePom = c.getPomUri(remoteRoot);
         log.info("Fetching [{}]", remotePom);
         Files.copy(remotePom.toURL().openStream(), target);
-      }
+      } else { log.info("Resolving [{}]", target); }
       return $(target.toFile());
     }
     catch (Exception e) {
       throw new IllegalStateException(e);
+    }
+  }
+
+  private Path install(Artifact a) {
+    requireNonNull(a);
+    try {
+      Path target = a.getLocalPackagePath(localRoot);
+      if (!target.toFile().getParentFile().exists()) { target.toFile().getParentFile().mkdirs(); }
+      if (!target.toFile().exists()) {
+        URI remoteArtifact = a.getPackageUri(remoteRoot);
+        log.info("Downloading [{}]", remoteArtifact);
+        Files.copy(remoteArtifact.toURL().openStream(), target);
+      }
+      return target;
+    } catch (Exception e) {
+      String msg = String.format("Unable to install artifact [%s]", a);
+      throw new IllegalStateException(msg, e);
     }
   }
 
@@ -98,7 +117,8 @@ public class Repository {
 
   private void loadRtTail(DependencyNode context, Set<Artifact> resolved) {
     if (context.artifact.isRuntime()) { resolved.add(context.artifact); }
-    for (Artifact rd : context.pom.getDependencies(true)) {
+    Set<Artifact> deps = context.pom.getDependencies(true);
+    for (Artifact rd : deps) {
       if (context.excludes(rd)) return;
       if (context.isTopLevelOverride(rd)) return;
       if (rd.getMetadata().classifier != null) { resolved.add(rd); }
@@ -113,5 +133,10 @@ public class Repository {
     DependencyNode n0 = new DependencyNode(buildPom(root));
     loadRtTail(n0, result);
     return result;
+  }
+
+  public Map<Artifact, Path> installRuntimeArtifactsAt(Coordinates root) {
+    Set<Artifact> result = loadRuntimeArtifactsAt(root);
+    return result.parallelStream().collect(Collectors.toMap(Function.identity(), this::install));
   }
 }

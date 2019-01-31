@@ -49,12 +49,14 @@ public class Artifact implements Comparable<Artifact> {
     return at.getBaseUri(origin).resolve(format("%s%s", getBaseArtifactName(), resourceExtension));
   }
 
-  public URI getPackageUri(URI origin) { return getResourceUri(origin, format(".%s", metadata.type)); }
+  public URI getPackageUri(URI origin) { return getResourceUri(origin, format(".%s", metadata.extension)); }
   public Path getLocalPackagePath(Path root) { return Paths.get(getPackageUri(root.toUri())); }
   public boolean isRuntime() {
+    if (metadata.type.contains("test")) return false;
+    if (metadata.classifier != null && metadata.classifier.contains("test")) return false;
+    if (optional) return false;
     boolean isRtScope = scope.equals(Scope.compile.toString()) || scope.equals(Scope.runtime.toString());
-    boolean isNotOptional = !optional;
-    boolean rt = metadata.addedToClasspath && isRtScope && isNotOptional;
+    boolean rt = metadata.addedToClasspath && isRtScope;
     return rt;
   }
 
