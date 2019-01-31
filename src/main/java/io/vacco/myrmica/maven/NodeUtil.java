@@ -11,7 +11,7 @@ public class NodeUtil {
     if (tn == null) return null;
     if (tn.equals(PomTag.dependency.toString())) {
       Artifact a = new Artifact(n);
-      return a.toExternalForm();
+      return a.getAt().getBaseResourceName();
     } else if (tn.equals(PomTag.profile.toString())) {
       return n.child(PomTag.id.toString()).text();
     } else if (tn.equals(PomTag.exclusion.toString())) {
