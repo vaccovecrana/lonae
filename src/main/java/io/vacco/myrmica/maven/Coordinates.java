@@ -54,7 +54,6 @@ public class Coordinates implements Comparable<Coordinates> {
   }
 
   @Override public String toString() { return toExternalForm(); }
-  @Override public int compareTo(Coordinates o) { return toExternalForm().compareTo(o.toExternalForm()); }
   @Override public int hashCode() { return toExternalForm().hashCode(); }
   @Override public boolean equals(Object o) {
     if (o instanceof Coordinates) {
@@ -64,6 +63,12 @@ public class Coordinates implements Comparable<Coordinates> {
           && (this.version != null && this.version.equals(m1.version));
     }
     return false;
+  }
+
+  @Override public int compareTo(Coordinates o) {
+    String ef0 = toExternalForm();
+    String ef1 = o.toExternalForm();
+    return ef0.compareTo(ef1);
   }
 
   public boolean matchesGroupAndArtifact(Coordinates mm0) {

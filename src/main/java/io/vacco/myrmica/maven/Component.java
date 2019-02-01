@@ -49,6 +49,19 @@ public class Component implements Cloneable {
     this.classifier = cl != null ? cl : this.classifier;
   }
 
+  @Override public boolean equals(Object o) {
+    if (o instanceof Component) {
+      Component oc = (Component) o;
+      boolean st = type.equals(oc.type);
+      boolean se = extension.equals(oc.extension);
+      boolean sp = packaging.equals(oc.packaging);
+      boolean sc = (classifier == null && oc.classifier == null)
+          || classifier != null && classifier.equals(oc.classifier);
+      return st && se && sp && sc;
+    }
+    return false;
+  }
+
   private static final Collection<Component> defaults = new ArrayList<>();
 
   static {

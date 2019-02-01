@@ -20,7 +20,7 @@ public class MyrmicaSpec {
 
     Logger log = LoggerFactory.getLogger(MyrmicaSpec.class);
 
-    String M2 = "http://central.maven.org/maven2/";
+    String M2 = "https://repo.maven.apache.org/maven2/";
     String localRepo = "/tmp/repo/";
     Repository repo = new Repository(localRepo, M2);
 

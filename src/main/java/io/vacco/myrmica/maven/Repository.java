@@ -78,39 +78,70 @@ public class Repository {
     return Optional.of(new Coordinates(p));
   }
 
+  private Match computePom(Coordinates coordinates) {
+    List<Match> poms = new ArrayList<>();
+    Optional<Coordinates> oc = Optional.of(coordinates);
+    while (oc.isPresent()) {
+      Match pp = loadPom(oc.get());
+      poms.add(pp);
+      oc = loadParent(pp);
+    }
+
+    String rootPackaging = poms.get(0).child(ComponentTag.packaging.toString()).text();
+    Optional<Coordinates> parentCoords = loadParent(poms.get(0));
+
+    Collections.reverse(poms);
+    poms = poms.stream().map(pom -> NodeUtil.filterTop(pom, PomTag.exclusionTags())).collect(Collectors.toList());
+    Optional<Match> ePom = poms.stream().reduce(NodeUtil::merge);
+
+    if (rootPackaging != null) {
+      ePom.get().child(ComponentTag.packaging.toString()).text(rootPackaging);
+    }
+
+    Map<String, String> rawProps = loadProperties(ePom.get());
+    rawProps.put("project.build.directory", new File(".").getAbsolutePath());
+    rawProps.put("project.groupId", coordinates.getGroupId());
+    rawProps.put("project.artifactId", coordinates.getArtifactId());
+    rawProps.put("project.version", coordinates.getVersion());
+    if (parentCoords.isPresent()) {
+      rawProps.put("project.parent.groupId", parentCoords.get().getGroupId());
+      rawProps.put("project.parent.artifactId", parentCoords.get().getArtifactId());
+      rawProps.put("project.parent.version", parentCoords.get().getVersion());
+    }
+
+    resolvePomKeyReferences(ePom.get(), resolveProperties(rawProps));
+    return ePom.get();
+  }
+
   public Pom buildPom(Coordinates c) {
-    return resolvedPoms.computeIfAbsent(c, coordinates -> {
-      List<Match> poms = new ArrayList<>();
-      Optional<Coordinates> oc = Optional.of(coordinates);
-      while (oc.isPresent()) {
-        Match pp = loadPom(oc.get());
-        poms.add(pp);
-        oc = loadParent(pp);
+    Pom p = resolvedPoms.computeIfAbsent(c, c0 -> new Pom(computePom(c0)));
+    List<Artifact> imports = p.getDefaultVersions().stream()
+        .filter(a -> a.getScope() != null)
+        .filter(a -> a.getScope().equals(scope_import))
+        .map(ai -> buildPom(ai.getAt()))
+        .flatMap(p0 -> p0.getDefaultVersions().stream())
+        .collect(Collectors.toList());
+    Set<Artifact> importedDefaults = new TreeSet<>();
+    for (Artifact ia : imports) {
+      boolean alreadyImported = importedDefaults.stream()
+          .anyMatch(ia0 -> ia0.getAt().matchesGroupAndArtifact(ia.getAt()));
+      if (!alreadyImported) {
+        importedDefaults.add(ia);
       }
+    }
+    p.getDefaultVersions().addAll(importedDefaults);
+    return p;
+  }
 
-      String rootPackaging = poms.get(0).child(ComponentTag.packaging.toString()).text();
-      Optional<Coordinates> parentCoords = loadParent(poms.get(0));
-      Optional<Match> ePom = poms.stream()
-          .map(pom -> NodeUtil.filterTop(pom, PomTag.exclusionTags()))
-          .reduce((pom0, pom1) -> NodeUtil.merge(pom1, pom0));
-
-      if (rootPackaging != null) {
-        ePom.get().child(ComponentTag.packaging.toString()).text(rootPackaging);
-      }
-
-      Map<String, String> rawProps = loadProperties(ePom.get());
-      rawProps.put("project.build.directory", new File(".").getAbsolutePath());
-      rawProps.put("project.groupId", coordinates.getGroupId());
-      rawProps.put("project.artifactId", coordinates.getArtifactId());
-      rawProps.put("project.version", coordinates.getVersion());
-      if (parentCoords.isPresent()) {
-        rawProps.put("project.parent.groupId", parentCoords.get().getGroupId());
-        rawProps.put("project.parent.artifactId", parentCoords.get().getArtifactId());
-        rawProps.put("project.parent.version", parentCoords.get().getVersion());
-      }
-
-      resolvePomKeyReferences(ePom.get(), resolveProperties(rawProps));
-      return new Pom(ePom.get());
+  private boolean isVersionConflict(Artifact a, Set<Artifact> resolved) {
+    return resolved.stream().anyMatch(ra -> {
+      Coordinates at0 = a.getAt();
+      Coordinates at1 = ra.getAt();
+      boolean sameCoords = at0.matchesGroupAndArtifact(at1);
+      boolean sameMetadata = a.getMetadata().equals(ra.getMetadata());
+      boolean resolvedHasPriority = ra.getTreeLevel() > a.getTreeLevel();
+      boolean isConflict = sameMetadata && sameCoords && resolvedHasPriority;
+      return isConflict;
     });
   }
 
@@ -120,8 +151,9 @@ public class Repository {
    *     resolving-conflicts-using-the-dependency-tree.html
    *   </a>
    */
-  private void loadRtTail(DependencyNode context, Set<Artifact> resolved) {
+  private void loadRtTail(DependencyNode context, Set<Artifact> resolved, int treeLevel) {
     if (context.artifact.isRuntime()) {
+      context.artifact.setTreeLevel(treeLevel);
       resolved.add(context.artifact);
     }
     Set<Artifact> deps = context.pom.getDependencies();
@@ -129,8 +161,9 @@ public class Repository {
       if (!rd.isRuntime()) continue;
       if (context.excludes(rd)) continue;
       if (context.isTopLevelOverride(rd)) continue;
+      if (isVersionConflict(rd, resolved)) continue;
       if (!resolved.contains(rd)) {
-        loadRtTail(new DependencyNode(buildPom(rd.getAt()), rd, context), resolved);
+        loadRtTail(new DependencyNode(buildPom(rd.getAt()), rd, context), resolved, treeLevel + 1);
       }
     }
   }
@@ -138,7 +171,7 @@ public class Repository {
   public Set<Artifact> loadRuntimeArtifactsAt(Coordinates root) {
     Set<Artifact> result = new TreeSet<>();
     DependencyNode n0 = new DependencyNode(buildPom(root));
-    loadRtTail(n0, result);
+    loadRtTail(n0, result, 0);
     return result;
   }
 

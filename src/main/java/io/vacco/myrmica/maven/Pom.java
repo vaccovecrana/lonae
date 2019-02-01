@@ -43,5 +43,7 @@ public class Pom {
   }
 
   public Artifact getRootArtifact() { return rootArtifact; }
+  public Set<Artifact> getDefaultVersions() { return defaultVersions; }
+
   @Override public String toString() { return rootArtifact.toExternalForm(); }
 }

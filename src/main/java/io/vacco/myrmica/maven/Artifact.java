@@ -17,6 +17,7 @@ public class Artifact implements Comparable<Artifact> {
   private final Component metadata;
   private final boolean optional;
   private String scope;
+  private int treeLevel = -1;
 
   private final Set<Artifact> exclusions = new TreeSet<>();
   private final Match xml;
@@ -35,7 +36,7 @@ public class Artifact implements Comparable<Artifact> {
       c.get().setClassifier(xml);
     }
     this.metadata = c.get();
-    if (scope == null) { scope = Scope.compile.toString(); }
+    if (scope == null) { scope = scope_compile; }
   }
 
   public String getBaseArtifactName() {
@@ -56,16 +57,15 @@ public class Artifact implements Comparable<Artifact> {
   public URI getPackageUri(URI origin) { return getResourceUri(origin, format(".%s", metadata.extension)); }
   public Path getLocalPackagePath(Path root) { return Paths.get(getPackageUri(root.toUri())); }
   public boolean isRuntime() {
-    if (metadata.type.contains("test")) return false;
-    if (metadata.classifier != null && metadata.classifier.contains("test")) return false;
+    if (metadata.type.contains(scope_test)) return false;
+    if (metadata.classifier != null && metadata.classifier.contains(scope_test)) return false;
     if (optional) return false;
-    boolean isRtScope = scope.equals(Scope.compile.toString()) || scope.equals(Scope.runtime.toString());
-    boolean rt = metadata.addedToClasspath && isRtScope;
-    return rt;
+    boolean isRtScope = scope.equals(scope_compile) || scope.equals(scope_runtime);
+    return metadata.addedToClasspath && isRtScope;
   }
 
   @Override public int compareTo(Artifact o) { return toExternalForm().compareTo(o.toExternalForm()); }
-  @Override public int hashCode() { return getBaseArtifactName().hashCode(); }
+  @Override public int hashCode() { return toExternalForm().hashCode(); }
   @Override public boolean equals(Object o) {
     if (o instanceof Artifact) {
       Artifact a0 = (Artifact) o;
@@ -78,6 +78,10 @@ public class Artifact implements Comparable<Artifact> {
 
   public Coordinates getAt() { return at; }
   public Component getMetadata() { return metadata; }
+  public String getScope() { return scope; }
+
+  public int getTreeLevel() { return treeLevel; }
+  public void setTreeLevel(int treeLevel) { this.treeLevel = treeLevel; }
 
   public boolean excludes(Artifact a) {
     boolean excluded = exclusions.stream().anyMatch(e -> e.getAt().matchesGroupAndArtifact(a.getAt()));
@@ -90,7 +94,7 @@ public class Artifact implements Comparable<Artifact> {
   }
 
   public static Set<Artifact> artifactsOf(Match xmlDepNode) {
-    return new TreeSet<>(xmlDepNode.children().each().stream()
-        .map(Artifact::new).collect(Collectors.toSet()));
+    return xmlDepNode.children().each().stream().map(Artifact::new)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 }

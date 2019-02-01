@@ -12,13 +12,13 @@ public class Constants {
 
     dependencyManagement, dependencies, dependency, exclusions, exclusion, properties,
 
-    build, description, developers,
+    build, ciManagement, contributors, description, developers,
     distributionManagement, inceptionYear, issueManagement, licenses, mailingLists,
     modules, organization, parent, pluginRepositories, profile, profiles, reporting, repositories,
     scm, url;
 
     public static String [] exclusionTags() {
-      return stringValues(build, description, developers, distributionManagement,
+      return stringValues(build, ciManagement, contributors, description, developers, distributionManagement,
           inceptionYear, issueManagement, licenses, mailingLists, modules, organization,
           ComponentTag.packaging, parent, pluginRepositories, profiles, reporting, repositories, scm, url);
     }
@@ -28,7 +28,10 @@ public class Constants {
     type, extension, packaging, classifier, language, addedToClasspath
   }
 
-  public enum Scope { compile, runtime }
+  public static final String scope_compile = "compile";
+  public static final String scope_runtime = "runtime";
+  public static final String scope_test = "test";
+  public static final String scope_import = "import";
 
   public static String [] stringValues(Enum ... args) {
     return Arrays.stream(args).map(Enum::toString).toArray(String[]::new);
