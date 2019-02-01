@@ -8,11 +8,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.vacco.myrmica.maven.Constants.*;
-import static java.util.Objects.requireNonNull;
 import static java.lang.String.format;
 
 public class Artifact implements Comparable<Artifact> {
 
+  private final Match xml;
   private final Coordinates at;
   private final Component metadata;
   private final boolean optional;
@@ -20,10 +20,9 @@ public class Artifact implements Comparable<Artifact> {
   private int treeLevel = -1;
 
   private final Set<Artifact> exclusions = new TreeSet<>();
-  private final Match xml;
 
   public Artifact(Match xml) {
-    this.xml = requireNonNull(xml);
+    this.xml = Objects.requireNonNull(xml);
     this.at = new Coordinates(xml);
     this.scope = xml.child(Constants.PomTag.scope.toString()).text();
     this.optional = Boolean.parseBoolean(xml.child(Constants.PomTag.optional.toString()).text());
@@ -79,6 +78,7 @@ public class Artifact implements Comparable<Artifact> {
   public Coordinates getAt() { return at; }
   public Component getMetadata() { return metadata; }
   public String getScope() { return scope; }
+  public Set<Artifact> getExclusions() { return exclusions; }
 
   public int getTreeLevel() { return treeLevel; }
   public void setTreeLevel(int treeLevel) { this.treeLevel = treeLevel; }

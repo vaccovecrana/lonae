@@ -140,8 +140,7 @@ public class Repository {
       boolean sameCoords = at0.matchesGroupAndArtifact(at1);
       boolean sameMetadata = a.getMetadata().equals(ra.getMetadata());
       boolean resolvedHasPriority = ra.getTreeLevel() > a.getTreeLevel();
-      boolean isConflict = sameMetadata && sameCoords && resolvedHasPriority;
-      return isConflict;
+      return sameMetadata && sameCoords && resolvedHasPriority;
     });
   }
 
@@ -154,7 +153,7 @@ public class Repository {
   private void loadRtTail(DependencyNode context, Set<Artifact> resolved, int treeLevel) {
     if (context.artifact.isRuntime()) {
       context.artifact.setTreeLevel(treeLevel);
-      resolved.add(context.artifact);
+      resolved.add(context.artifact); // TODO guice 3.0 is not being excluded... :(
     }
     Set<Artifact> deps = context.pom.getDependencies();
     for (Artifact rd : deps) {

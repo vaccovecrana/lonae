@@ -34,6 +34,7 @@ public class Pom {
           .filter(dv -> dv.getAt().matchesGroupAndArtifact(d0.getAt())).findFirst();
       if (oda.isPresent()) {
         d0.getAt().setVersion(oda.get().getAt().getVersion()); // TODO it's likely that we'll need to import default exclusion metadata here as well...
+        d0.getExclusions().addAll(oda.get().getExclusions()); // TODO two copies of aopalliance are bubbing up... :(...
         return d0;
       }
       log.warn("Unable to resolve version metadata for {}", d0);

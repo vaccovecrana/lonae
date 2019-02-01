@@ -29,12 +29,23 @@ public class ResolutionStats {
     Map<Artifact, Path> binaries = repo.installRuntimeArtifactsAt(target);
     Set<Coordinates> binaryCoords = new TreeSet<>(binaries.keySet().stream().map(Artifact::getAt).collect(Collectors.toSet()));
     assertFalse(binaries.isEmpty());
+
+    mvnRef.forEach(refCoord -> {
+      if (binaryCoords.contains(refCoord)) {
+        result.hit.add(refCoord);
+      } else {
+        result.miss.add(refCoord);
+      }
+    });
+
+    /*
     binaries.forEach((artifact, path) -> {
       assertTrue(path.toFile().exists() && path.toFile().isFile());
       if (mvnRef.contains(artifact.getAt())) { result.hit.add(artifact.getAt()); }
       else { result.miss.add(artifact.getAt()); }
     });
-    // mvnRef.forEach(refCoord -> { if (!binaryCoords.contains(refCoord)) { result.miss.add(refCoord); } });
+    */
+
     return result;
   }
 
