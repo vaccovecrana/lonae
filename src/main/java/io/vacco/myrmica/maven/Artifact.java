@@ -17,7 +17,6 @@ public class Artifact implements Comparable<Artifact> {
   private final Component metadata;
   private final boolean optional;
   private String scope;
-  private int treeLevel = -1;
 
   private final Set<Artifact> exclusions = new TreeSet<>();
 
@@ -55,11 +54,12 @@ public class Artifact implements Comparable<Artifact> {
 
   public URI getPackageUri(URI origin) { return getResourceUri(origin, format(".%s", metadata.extension)); }
   public Path getLocalPackagePath(Path root) { return Paths.get(getPackageUri(root.toUri())); }
-  public boolean isRuntime() {
+  public boolean isRuntimeClassPath() {
     if (metadata.type.contains(scope_test)) return false;
     if (metadata.classifier != null && metadata.classifier.contains(scope_test)) return false;
     if (optional) return false;
-    boolean isRtScope = scope.equals(scope_compile) || scope.equals(scope_runtime);
+    if (scope_provided.equals(scope)) return false;
+    boolean isRtScope = scope_compile.equals(scope) || scope_runtime.equals(scope);
     return metadata.addedToClasspath && isRtScope;
   }
 
@@ -76,12 +76,10 @@ public class Artifact implements Comparable<Artifact> {
   }
 
   public Coordinates getAt() { return at; }
-  public Component getMetadata() { return metadata; }
-  public String getScope() { return scope; }
   public Set<Artifact> getExclusions() { return exclusions; }
 
-  public int getTreeLevel() { return treeLevel; }
-  public void setTreeLevel(int treeLevel) { this.treeLevel = treeLevel; }
+  public String getScope() { return scope; }
+  public void setScope(String scope) { this.scope = scope; }
 
   public boolean excludes(Artifact a) {
     boolean excluded = exclusions.stream().anyMatch(e -> e.getAt().matchesGroupAndArtifact(a.getAt()));

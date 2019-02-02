@@ -27,6 +27,7 @@ public class MyrmicaSpec {
     Coordinates spark = new Coordinates("org.apache.spark", "spark-core_2.12", "2.4.0");
     Coordinates spring = new Coordinates("org.springframework.boot", "spring-boot-starter-web", "2.1.2.RELEASE");
     Coordinates opencv = new Coordinates("org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4");
+    Coordinates dl4j = new Coordinates("org.deeplearning4j", "deeplearning4j-core", "1.0.0-beta3");
 
     it("Can merge two XML documents.", () -> {
       Match logbackParent = $(MyrmicaSpec.class.getResourceAsStream("/logback-parent.pom"));
@@ -51,14 +52,15 @@ public class MyrmicaSpec {
       Set<Artifact> rtDeps = repo.loadRuntimeArtifactsAt(spark);
       assertFalse(rtDeps.isEmpty());
     });
-*/
     it("Can resolve dependencies for a module's coordinates which also specify native dependencies.", () -> {
       Set<Artifact> openCvArt = repo.loadRuntimeArtifactsAt(opencv);
       assertFalse(openCvArt.isEmpty());
     });
+*/
     it("Can install target runtime artifacts for large frameworks.", () -> {
       // ResolutionStats.installAndMatch(repo, spring, "/org.springframework.boot^spring-boot-starter-web^2.1.2.RELEASE.mvn");
-      ResolutionStats.installAndMatch(repo, spark, "/org.apache.spark^spark-core_2.12^2.4.0.mvn");
+      // ResolutionStats.installAndMatch(repo, spark, "/org.apache.spark^spark-core_2.12^2.4.0.mvn");
+      ResolutionStats.installAndMatch(repo, dl4j,"/org.deeplearning4j^deeplearning4j-core^1.0.0-beta3.mvn");
     });
   }
 }

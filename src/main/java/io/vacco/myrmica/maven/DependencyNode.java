@@ -25,27 +25,24 @@ public class DependencyNode {
     return false;
   }
 
-  /*
-    TODO it's likely that top level dependency override resolution also needs to occur in the context of the immediate
-    parent node?
-   */
   boolean isTopLevelOverride(Artifact a) {
     DependencyNode n0 = this;
-    DependencyNode top = this;
     while (n0 != null) {
-      if (n0.parent != null) top = n0.parent;
+      boolean overrides = n0.pom.getDependencies().stream()
+          .filter(Artifact::isRuntimeClassPath).anyMatch(ta -> {
+            boolean sameCoords = ta.getAt().matchesGroupAndArtifact(a.getAt());
+            boolean diffVer = !ta.getAt().getVersion().equals(a.getAt().getVersion());
+            return sameCoords && diffVer;
+          });
+      if (overrides) return true;
       n0 = n0.parent;
     }
-    boolean overrides = top.pom.getDependencies().stream().anyMatch(ta -> {
-      boolean sameCoords = ta.getAt().matchesGroupAndArtifact(a.getAt());
-      boolean diffVer = !ta.getAt().getVersion().equals(a.getAt().getVersion());
-      return sameCoords && diffVer;
-    });
-    return overrides;
+    return false;
   }
 
   @Override public String toString() {
     return String.format("[%s%s]",
-        parent != null ? String.format("%s <-- ", parent.pom) : "", pom);
+        parent != null ? String.format("%s <-- ", parent.pom.getRootArtifact().getBaseArtifactName()) : "",
+        pom.getRootArtifact().getBaseArtifactName());
   }
 }

@@ -11,6 +11,7 @@ public class ResolutionStats {
 
   public final Set<Coordinates> hit = new TreeSet<>();
   public final Set<Coordinates> miss = new TreeSet<>();
+  public final Set<Coordinates> slack = new TreeSet<>();
 
   public static Set<Coordinates> loadRef(String classPathLocation) throws IOException {
     String [] lines = new Scanner(
@@ -19,37 +20,34 @@ public class ResolutionStats {
     return new TreeSet<>(
         Arrays.stream(lines)
             .map(l0 -> l0.split(":"))
-            .map(l0 -> new Coordinates(l0[0], l0[1], l0[3]))
-            .collect(Collectors.toSet()));
+            .map(l0 -> new Coordinates(l0[0], l0[1],
+                l0[2].contains("->") ? l0[2].split("->")[1] : l0[2])
+            ).collect(Collectors.toSet()));
   }
 
   public static ResolutionStats installAndMatch(Repository repo, Coordinates target, String mvnReference) throws IOException {
     ResolutionStats result = new ResolutionStats();
     Set<Coordinates> mvnRef = ResolutionStats.loadRef(mvnReference);
     Map<Artifact, Path> binaries = repo.installRuntimeArtifactsAt(target);
-    Set<Coordinates> binaryCoords = new TreeSet<>(binaries.keySet().stream().map(Artifact::getAt).collect(Collectors.toSet()));
     assertFalse(binaries.isEmpty());
 
     mvnRef.forEach(refCoord -> {
-      if (binaryCoords.contains(refCoord)) {
-        result.hit.add(refCoord);
-      } else {
-        result.miss.add(refCoord);
+      Optional<Coordinates> hit = binaries.keySet().stream()
+          .filter(a -> a.getAt().equals(refCoord))
+          .map(Artifact::getAt).findFirst();
+      if (hit.isPresent()) { result.hit.add(refCoord); }
+      else { result.miss.add(refCoord); }
+    });
+    binaries.keySet().forEach(a -> {
+      if (!mvnRef.contains(a.getAt())) {
+        result.slack.add(a.getAt());
       }
     });
-
-    /*
-    binaries.forEach((artifact, path) -> {
-      assertTrue(path.toFile().exists() && path.toFile().isFile());
-      if (mvnRef.contains(artifact.getAt())) { result.hit.add(artifact.getAt()); }
-      else { result.miss.add(artifact.getAt()); }
-    });
-    */
 
     return result;
   }
 
   @Override public String toString() {
-    return String.format("Hit: %s, Miss: %s", hit.size(), miss.size());
+    return String.format("Hit: %s, Miss: %s, Slack: %s", hit.size(), miss.size(), slack.size());
   }
 }

@@ -30,11 +30,15 @@ public class Pom {
     Set<Artifact> result = new TreeSet<>();
     result.addAll(dependencies.stream().map(d0 -> {
       if (d0.getAt().getVersion() != null) return d0;
-      Optional<Artifact> oda = defaultVersions.stream()
-          .filter(dv -> dv.getAt().matchesGroupAndArtifact(d0.getAt())).findFirst();
-      if (oda.isPresent()) {
-        d0.getAt().setVersion(oda.get().getAt().getVersion()); // TODO it's likely that we'll need to import default exclusion metadata here as well...
-        d0.getExclusions().addAll(oda.get().getExclusions()); // TODO two copies of aopalliance are bubbing up... :(...
+      List<Artifact> oda = defaultVersions.stream()
+          .filter(dv -> dv.getAt().matchesGroupAndArtifact(d0.getAt())).collect(Collectors.toList());
+      if (!oda.isEmpty()) {
+        Artifact def = oda.get(0);
+        d0.getAt().setVersion(def.getAt().getVersion());
+        d0.getExclusions().addAll(def.getExclusions());
+        if (d0.getScope().equals(Constants.scope_compile) && (!d0.getScope().equals(def.getScope()))) {
+          d0.setScope(def.getScope());
+        }
         return d0;
       }
       log.warn("Unable to resolve version metadata for {}", d0);

@@ -29,9 +29,10 @@ public class Constants {
   }
 
   public static final String scope_compile = "compile";
+  public static final String scope_import = "import";
+  public static final String scope_provided = "provided";
   public static final String scope_runtime = "runtime";
   public static final String scope_test = "test";
-  public static final String scope_import = "import";
 
   public static String [] stringValues(Enum ... args) {
     return Arrays.stream(args).map(Enum::toString).toArray(String[]::new);

@@ -34,6 +34,10 @@ public class Coordinates implements Comparable<Coordinates> {
     }
   }
 
+  public String getBaseCoordinates() {
+    return String.format("%s:%s", groupId, artifactId);
+  }
+
   public String getBaseResourceName() {
     return String.format("%s%s", artifactId,
         version != null ? format("-%s", version) : "");
@@ -49,7 +53,7 @@ public class Coordinates implements Comparable<Coordinates> {
   }
 
   public String toExternalForm() {
-    return String.format("%s:%s%s", groupId, artifactId,
+    return String.format("%s%s", getBaseCoordinates(),
         version == null ? "" : String.format(":%s", version));
   }
 

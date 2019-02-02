@@ -133,36 +133,21 @@ public class Repository {
     return p;
   }
 
-  private boolean isVersionConflict(Artifact a, Set<Artifact> resolved) {
-    return resolved.stream().anyMatch(ra -> {
-      Coordinates at0 = a.getAt();
-      Coordinates at1 = ra.getAt();
-      boolean sameCoords = at0.matchesGroupAndArtifact(at1);
-      boolean sameMetadata = a.getMetadata().equals(ra.getMetadata());
-      boolean resolvedHasPriority = ra.getTreeLevel() > a.getTreeLevel();
-      return sameMetadata && sameCoords && resolvedHasPriority;
-    });
-  }
-
   /**
    * @see
    *   <a href="https://maven.apache.org/plugins/maven-dependency-plugin/examples/resolving-conflicts-using-the-dependency-tree.html">
    *     resolving-conflicts-using-the-dependency-tree.html
    *   </a>
    */
-  private void loadRtTail(DependencyNode context, Set<Artifact> resolved, int treeLevel) {
-    if (context.artifact.isRuntime()) {
-      context.artifact.setTreeLevel(treeLevel);
-      resolved.add(context.artifact); // TODO guice 3.0 is not being excluded... :(
-    }
-    Set<Artifact> deps = context.pom.getDependencies();
-    for (Artifact rd : deps) {
-      if (!rd.isRuntime()) continue;
-      if (context.excludes(rd)) continue;
-      if (context.isTopLevelOverride(rd)) continue;
-      if (isVersionConflict(rd, resolved)) continue;
-      if (!resolved.contains(rd)) {
-        loadRtTail(new DependencyNode(buildPom(rd.getAt()), rd, context), resolved, treeLevel + 1);
+  private void loadRtTail(DependencyNode context, Set<Artifact> resolved) {
+    if (context.artifact.isRuntimeClassPath()) {
+      resolved.add(context.artifact);
+      Set<Artifact> deps = context.pom.getDependencies();
+      for (Artifact rd : deps) {
+        if (!rd.isRuntimeClassPath()) continue;
+        if (context.excludes(rd)) continue;
+        if (context.isTopLevelOverride(rd)) continue;
+        loadRtTail(new DependencyNode(buildPom(rd.getAt()), rd, context), resolved);
       }
     }
   }
@@ -170,7 +155,13 @@ public class Repository {
   public Set<Artifact> loadRuntimeArtifactsAt(Coordinates root) {
     Set<Artifact> result = new TreeSet<>();
     DependencyNode n0 = new DependencyNode(buildPom(root));
-    loadRtTail(n0, result, 0);
+    loadRtTail(n0, result);
+    Map<String, List<Artifact>> o = result.stream().collect(Collectors.groupingBy(a -> a.getAt().getBaseCoordinates()));
+    o.values().stream().filter(al -> al.size() > 1).forEach(al -> {
+      List<Artifact> vDesc = al.stream().sorted().collect(Collectors.toList());
+      vDesc.remove(vDesc.size() - 1);
+      vDesc.forEach(result::remove);
+    });
     return result;
   }
 
