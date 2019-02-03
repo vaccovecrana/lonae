@@ -115,6 +115,7 @@ public class Repository {
 
   public Pom buildPom(Coordinates c) {
     Pom p = resolvedPoms.computeIfAbsent(c, c0 -> new Pom(computePom(c0)));
+    p.setSourceUrl(p.getRootArtifact().getAt().getPomUri(remoteRoot).toString());
     List<Artifact> imports = p.getDefaultVersions().stream()
         .filter(a -> a.getScope() != null)
         .filter(a -> a.getScope().equals(scope_import))
@@ -130,6 +131,7 @@ public class Repository {
       }
     }
     p.getDefaultVersions().addAll(importedDefaults);
+    p.computeEffectiveDependencies();
     return p;
   }
 

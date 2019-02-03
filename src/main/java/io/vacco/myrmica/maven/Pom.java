@@ -14,21 +14,22 @@ public class Pom {
 
   private static final Logger log = LoggerFactory.getLogger(Pom.class);
 
+  private final Match ePom;
   private final Artifact rootArtifact;
   private final Set<Artifact> defaultVersions;
-  private final Set<Artifact> dependencies;
+  private final Set<Artifact> dependencies = new TreeSet<>();
+  private String sourceUrl;
 
   public Pom(Match ePom) {
+    this.ePom = Objects.requireNonNull(ePom);
     this.rootArtifact = new Artifact(ePom);
     this.defaultVersions = artifactsOf(
         ePom.child(PomTag.dependencyManagement.toString())
             .child(PomTag.dependencies.toString()));
-    this.dependencies = artifactsOf(ePom.child(PomTag.dependencies.toString()));
   }
 
-  public Set<Artifact> getDependencies() {
-    Set<Artifact> result = new TreeSet<>();
-    result.addAll(dependencies.stream().map(d0 -> {
+  public void computeEffectiveDependencies() {
+    dependencies.addAll(artifactsOf(ePom.child(PomTag.dependencies.toString())).stream().map(d0 -> {
       if (d0.getAt().getVersion() != null) return d0;
       List<Artifact> oda = defaultVersions.stream()
           .filter(dv -> dv.getAt().matchesGroupAndArtifact(d0.getAt())).collect(Collectors.toList());
@@ -44,11 +45,12 @@ public class Pom {
       log.warn("Unable to resolve version metadata for {}", d0);
       return null;
     }).filter(Objects::nonNull).collect(Collectors.toSet()));
-    return result;
   }
 
+  public Set<Artifact> getDependencies() { return dependencies; }
   public Artifact getRootArtifact() { return rootArtifact; }
   public Set<Artifact> getDefaultVersions() { return defaultVersions; }
+  public void setSourceUrl(String sourceUrl) { this.sourceUrl = sourceUrl; }
 
   @Override public String toString() { return rootArtifact.toExternalForm(); }
 }
