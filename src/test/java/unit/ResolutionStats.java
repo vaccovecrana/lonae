@@ -30,10 +30,10 @@ public class ResolutionStats {
             ).collect(Collectors.toSet()));
   }
 
-  public static ResolutionStats installAndMatch(Repository repo, Coordinates target, String mvnReference) throws IOException {
+  public static ResolutionStats installAndMatch(Repository repo, Coordinates target, String gradleRef) throws IOException {
 
     ResolutionStats result = new ResolutionStats(target);
-    Set<Coordinates> mvnRef = ResolutionStats.loadRef(mvnReference);
+    Set<Coordinates> mvnRef = ResolutionStats.loadRef(gradleRef);
     Map<Artifact, Path> binaries = repo.installRuntimeArtifactsAt(target);
     assertFalse(binaries.isEmpty());
 

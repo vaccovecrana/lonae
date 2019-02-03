@@ -27,6 +27,8 @@ public class MyrmicaSpec {
     String localRepo = "/tmp/repo/";
     Repository repo = new Repository(localRepo, M2);
 
+    Coordinates googleApiClient = new Coordinates("com.google.api-client", "google-api-client", "1.28.0");
+    Coordinates hibernateCore = new Coordinates("org.hibernate", "hibernate-core", "5.4.1.Final");
     Coordinates spark = new Coordinates("org.apache.spark", "spark-core_2.12", "2.4.0");
     Coordinates spring = new Coordinates("org.springframework.boot", "spring-boot-starter-web", "2.1.2.RELEASE");
     Coordinates opencv = new Coordinates("org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4");
@@ -58,10 +60,15 @@ public class MyrmicaSpec {
       assertFalse(openCvArt.isEmpty());
     });
     it("Can install target runtime artifacts for large frameworks.", () -> {
-      ResolutionStats rsSpring = ResolutionStats.installAndMatch(repo, spring, "/org.springframework.boot^spring-boot-starter-web^2.1.2.RELEASE.mvn");
-      ResolutionStats rsSpark = ResolutionStats.installAndMatch(repo, spark, "/org.apache.spark^spark-core_2.12^2.4.0.mvn");
-      ResolutionStats rsDl4j = ResolutionStats.installAndMatch(repo, dl4j,"/org.deeplearning4j^deeplearning4j-core^1.0.0-beta3.mvn");
 
+      ResolutionStats rsGoogleApiClient = ResolutionStats.installAndMatch(repo, googleApiClient, "/com.google.api-client^google-api-client^1.28.0.grdl");
+      ResolutionStats rsHibernateCore = ResolutionStats.installAndMatch(repo, hibernateCore, "/org.hibernate^hibernate-core^5.4.1.Final.grdl");
+      ResolutionStats rsSpring = ResolutionStats.installAndMatch(repo, spring, "/org.springframework.boot^spring-boot-starter-web^2.1.2.RELEASE.grdl");
+      ResolutionStats rsSpark = ResolutionStats.installAndMatch(repo, spark, "/org.apache.spark^spark-core_2.12^2.4.0.grdl");
+      ResolutionStats rsDl4j = ResolutionStats.installAndMatch(repo, dl4j, "/org.deeplearning4j^deeplearning4j-core^1.0.0-beta3.grdl");
+
+      log.info(rsGoogleApiClient.toString());
+      log.info(rsHibernateCore.toString());
       log.info(rsSpring.toString());
       log.info(rsSpark.toString());
       log.info(rsDl4j.toString());
