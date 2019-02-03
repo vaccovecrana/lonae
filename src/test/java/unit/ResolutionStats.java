@@ -33,11 +33,11 @@ public class ResolutionStats {
   public static ResolutionStats installAndMatch(Repository repo, Coordinates target, String gradleRef) throws IOException {
 
     ResolutionStats result = new ResolutionStats(target);
-    Set<Coordinates> mvnRef = ResolutionStats.loadRef(gradleRef);
+    Set<Coordinates> grdRef = ResolutionStats.loadRef(gradleRef);
     Map<Artifact, Path> binaries = repo.installRuntimeArtifactsAt(target);
     assertFalse(binaries.isEmpty());
 
-    mvnRef.forEach(refCoord -> {
+    grdRef.forEach(refCoord -> {
       Optional<Coordinates> hit = binaries.keySet().stream()
           .filter(a -> a.getAt().equals(refCoord))
           .map(Artifact::getAt).findFirst();
@@ -45,7 +45,7 @@ public class ResolutionStats {
       else { result.miss.add(refCoord); }
     });
     binaries.keySet().forEach(a -> {
-      if (!mvnRef.contains(a.getAt())) {
+      if (!grdRef.contains(a.getAt())) {
         result.slack.add(a.getAt());
       }
     });

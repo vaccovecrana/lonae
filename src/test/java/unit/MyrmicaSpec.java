@@ -35,7 +35,7 @@ public class MyrmicaSpec {
     Coordinates spring = new Coordinates("org.springframework.boot", "spring-boot-starter-web", "2.1.2.RELEASE");
     Coordinates opencv = new Coordinates("org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4");
     Coordinates dl4j = new Coordinates("org.deeplearning4j", "deeplearning4j-core", "1.0.0-beta3");
-
+/*
     it("Can merge two XML documents.", () -> {
       Match logbackParent = $(MyrmicaSpec.class.getResourceAsStream("/logback-parent.pom"));
       Match logbackClassic = $(MyrmicaSpec.class.getResourceAsStream("/logback-classic.pom"));
@@ -60,7 +60,7 @@ public class MyrmicaSpec {
     it("Can resolve dependencies for a module's coordinates which also specify native dependencies.", () -> {
       Set<Artifact> openCvArt = repo.loadRuntimeArtifactsAt(opencv);
       assertFalse(openCvArt.isEmpty());
-    });
+    });*/
     it("Can install target runtime artifacts for large frameworks.", () -> {
 
       ResolutionStats rsQueryDslJpa = ResolutionStats.installAndMatch(repo, queryDslJpa, "/com.querydsl^querydsl-jpa^4.2.1.grdl");
