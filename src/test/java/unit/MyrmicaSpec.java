@@ -7,6 +7,9 @@ import org.joox.Match;
 import org.junit.runner.RunWith;
 import org.slf4j.*;
 
+import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Set;
 
 import static j8spec.J8Spec.*;
@@ -35,12 +38,10 @@ public class MyrmicaSpec {
       Match merged = NodeUtil.merge(logbackParent, logbackClassic);
       log.info(merged.toString());
     });
-
-/*
     it("Can build local/remote paths for Maven coordinates.", () -> {
       URI remotePom = spark.getPomUri(new URI(M2));
       Path localPom = spark.getLocalPomPath(Paths.get(localRepo));
-      assertEquals("http://central.maven.org/maven2/org/apache/spark/spark-core_2.12/2.4.0/spark-core_2.12-2.4.0.pom", remotePom.toString());
+      assertEquals("https://repo.maven.apache.org/maven2/org/apache/spark/spark-core_2.12/2.4.0/spark-core_2.12-2.4.0.pom", remotePom.toString());
       assertEquals("/tmp/repo/org/apache/spark/spark-core_2.12/2.4.0/spark-core_2.12-2.4.0.pom", localPom.toString());
     });
     it("Can resolve dependencies from a POM definition for a module's coordinates.", () -> {
@@ -56,12 +57,14 @@ public class MyrmicaSpec {
       Set<Artifact> openCvArt = repo.loadRuntimeArtifactsAt(opencv);
       assertFalse(openCvArt.isEmpty());
     });
-*/
     it("Can install target runtime artifacts for large frameworks.", () -> {
-      // ResolutionStats.installAndMatch(repo, spring, "/org.springframework.boot^spring-boot-starter-web^2.1.2.RELEASE.mvn");
-      ResolutionStats.installAndMatch(repo, spark, "/org.apache.spark^spark-core_2.12^2.4.0.mvn");
-      // ResolutionStats.installAndMatch(repo, dl4j,"/org.deeplearning4j^deeplearning4j-core^1.0.0-beta3.mvn");
-      // ResolutionStats.installAndMatch(repo, spring,"/org.springframework.boot^spring-boot-starter-web^2.1.2.RELEASE.mvn");
+      ResolutionStats rsSpring = ResolutionStats.installAndMatch(repo, spring, "/org.springframework.boot^spring-boot-starter-web^2.1.2.RELEASE.mvn");
+      ResolutionStats rsSpark = ResolutionStats.installAndMatch(repo, spark, "/org.apache.spark^spark-core_2.12^2.4.0.mvn");
+      ResolutionStats rsDl4j = ResolutionStats.installAndMatch(repo, dl4j,"/org.deeplearning4j^deeplearning4j-core^1.0.0-beta3.mvn");
+
+      log.info(rsSpring.toString());
+      log.info(rsSpark.toString());
+      log.info(rsDl4j.toString());
     });
   }
 }

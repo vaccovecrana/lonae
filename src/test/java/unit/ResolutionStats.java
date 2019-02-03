@@ -9,9 +9,14 @@ import static org.junit.Assert.*;
 
 public class ResolutionStats {
 
+  public final Coordinates coordinates;
   public final Set<Coordinates> hit = new TreeSet<>();
   public final Set<Coordinates> miss = new TreeSet<>();
   public final Set<Coordinates> slack = new TreeSet<>();
+
+  public ResolutionStats(Coordinates c) {
+    this.coordinates = Objects.requireNonNull(c);
+  }
 
   public static Set<Coordinates> loadRef(String classPathLocation) throws IOException {
     String [] lines = new Scanner(
@@ -26,7 +31,8 @@ public class ResolutionStats {
   }
 
   public static ResolutionStats installAndMatch(Repository repo, Coordinates target, String mvnReference) throws IOException {
-    ResolutionStats result = new ResolutionStats();
+
+    ResolutionStats result = new ResolutionStats(target);
     Set<Coordinates> mvnRef = ResolutionStats.loadRef(mvnReference);
     Map<Artifact, Path> binaries = repo.installRuntimeArtifactsAt(target);
     assertFalse(binaries.isEmpty());
@@ -48,6 +54,7 @@ public class ResolutionStats {
   }
 
   @Override public String toString() {
-    return String.format("Hit: %s, Miss: %s, Slack: %s", hit.size(), miss.size(), slack.size());
+    return String.format("Hit: %03d, Miss: %03d, Slack: %03d -> %s",
+        hit.size(), miss.size(), slack.size(), coordinates);
   }
 }

@@ -1,6 +1,4 @@
 .gradle/
 .idea/
-/build/
-
-# Cache of project
-.gradletasknamecache
+build/
+target/
