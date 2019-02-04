@@ -38,22 +38,28 @@ public class ResolutionResult {
     return dl.stream();
   }
 
-  private void printTreeTail(DependencyNode n0, StringBuilder out, Set<Artifact> visited,
+  private void printTreeTail(DependencyNode n0, StringBuilder out, Set<String> visitedHashes,
                              int level, int childIdx, int childCount) {
-    visited.add(n0.artifact);
     for (int i = 0; i < level; i++) { out.append("  "); }
     if (level > 0) {
       if (childIdx == 0) out.append("+-- ");
       else if (childIdx == childCount - 1) out.append("\\-- ");
       else out.append("|-- ");
     }
-    out.append(n0.artifact.getAt()).append('\n');
-    for (int i = 0; i < n0.children.size(); i++) {
-      DependencyNode dnc = n0.children.get(i);
-      if (!visited.contains(dnc.artifact)) {
-        printTreeTail(dnc, out, visited, level + 1, i, n0.children.size());
+    String childrenHash = n0.children.stream()
+        .map(dn -> dn.artifact.getAt().toExternalForm())
+        .collect(Collectors.joining());
+    out.append(n0.artifact.getAt());
+    if (!visitedHashes.contains(childrenHash)) {
+      out.append('\n');
+      for (int i = 0; i < n0.children.size(); i++) {
+        DependencyNode dnc = n0.children.get(i);
+        printTreeTail(dnc, out, visitedHashes, level + 1, i, n0.children.size());
       }
     }
+    else if (!n0.children.isEmpty()) { out.append(" (*)\n"); }
+    else { out.append('\n'); }
+    visitedHashes.add(childrenHash);
   }
 
   public String printTree() {
