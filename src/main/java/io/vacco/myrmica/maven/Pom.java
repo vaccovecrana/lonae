@@ -16,7 +16,6 @@ public class Pom {
   private final Artifact rootArtifact;
   private final Set<Artifact> defaultVersions;
   private final Set<Artifact> dependencies = new TreeSet<>();
-  private String sourceUrl;
 
   public Pom(Match ePom) {
     this.ePom = Objects.requireNonNull(ePom);
@@ -55,7 +54,6 @@ public class Pom {
   public Set<Artifact> getDependencies() { return dependencies; }
   public Artifact getRootArtifact() { return rootArtifact; }
   public Set<Artifact> getDefaultVersions() { return defaultVersions; }
-  public void setSourceUrl(String sourceUrl) { this.sourceUrl = sourceUrl; }
 
   @Override public String toString() { return rootArtifact.toExternalForm(); }
 }

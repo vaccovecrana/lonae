@@ -51,7 +51,7 @@ public class DependencyNode {
   public Artifact getReplacement() { return replacement; }
   public List<DependencyNode> getChildren() { return children; }
   public Pom getPom() { return pom; }
-  public Artifact getEfectiveArtifact() {
+  public Artifact getEffectiveArtifact() {
     return replacement != null ? replacement : artifact;
   }
 

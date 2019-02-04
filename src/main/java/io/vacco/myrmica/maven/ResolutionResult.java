@@ -30,7 +30,7 @@ public class ResolutionResult {
     flatten(root).filter(dn -> replaceTargets.containsKey(dn.getArtifact()))
         .forEach(dn -> dn.replaceWith(replaceTargets.get(dn.getArtifact())));
     this.artifacts = flatten(root)
-        .map(DependencyNode::getEfectiveArtifact)
+        .map(DependencyNode::getEffectiveArtifact)
         .collect(Collectors.toCollection(TreeSet::new));
   }
 
@@ -54,7 +54,7 @@ public class ResolutionResult {
       else out.append("|-- ");
     }
     int childrenHash = n0.getChildren().stream()
-        .map(DependencyNode::getEfectiveArtifact)
+        .map(DependencyNode::getEffectiveArtifact)
         .map(Artifact::toExternalForm)
         .collect(Collectors.joining()).hashCode();
     out.append(String.format("%s%s",
