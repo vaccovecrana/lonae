@@ -17,10 +17,12 @@ version '0.1.0'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+def description = 'A lightweight Maven artifact and dependency resolver.'
+def website = 'https://github.com/vaccovecrana/myrmica'
+
 dependencies {
   compile "org.slf4j:slf4j-api:1.7.25"
   compile "org.jooq:joox-java-6:1.6.0"
-
   testCompile "org.slf4j:slf4j-simple:1.7.25"
   testCompile "junit:junit:4.12"
   testCompile "io.github.j8spec:j8spec:3.0.0"
@@ -28,11 +30,39 @@ dependencies {
 
 task sourceJar(type: Jar, dependsOn: classes) { from sourceSets.main.allSource }
 
+def pomConfig = {
+  licenses {
+    license {
+      name 'The Apache Software License, Version 2.0'
+      url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+      distribution "repo"
+    }
+  }
+  developers {
+    developer {
+      id "jjzazuet"
+      name "Jesus Zazueta"
+      email "jjzazuet@vaco.io"
+    }
+  }
+  scm { url website }
+}
+
 publishing {
   publications {
     mavenJava(MavenPublication) {
       from components.java
       artifact sourceJar { classifier "sources" }
+      groupId project.group
+      artifactId project.name
+      version project.version
+      pom.withXml {
+        def root = asNode()
+        root.appendNode('description', description)
+        root.appendNode('name', project.name)
+        root.appendNode('url', website)
+        root.children().last() + pomConfig
+      }
     }
   }
 }
@@ -42,18 +72,18 @@ bintray {
   key = System.getenv('BINTRAY_KEY')
   publications = ['mavenJava']
   pkg {
-    repo = 'io.vacco.myrica'
+    repo = project.group
     name = project.name
     userOrg = 'vaccovecrana'
     licenses = ['Apache-2.0']
-    websiteUrl = 'https://github.com/vaccovecrana/myrica'
-    issueTrackerUrl = 'https://github.com/vaccovecrana/myrica/issues'
-    vcsUrl = 'https://github.com/vaccovecrana/myrica.git'
+    websiteUrl = website
+    issueTrackerUrl = 'https://github.com/vaccovecrana/myrmica/issues'
+    vcsUrl = 'https://github.com/vaccovecrana/myrmica.git'
     labels = ['maven', 'dependency', 'resolver']
     publicDownloadNumbers = true
     version {
       name = project.version
-      desc = 'A lightweight Maven artifact and dependency resolver.'
+      desc = description
       gpg { sign = true }
     }
   }
