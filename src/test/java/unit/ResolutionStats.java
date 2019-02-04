@@ -13,6 +13,7 @@ public class ResolutionStats {
   public final Set<Coordinates> hit = new TreeSet<>();
   public final Set<Coordinates> miss = new TreeSet<>();
   public final Set<Coordinates> slack = new TreeSet<>();
+  public ResolutionResult resolutionResult;
 
   public ResolutionStats(Coordinates c) {
     this.coordinates = Objects.requireNonNull(c);
@@ -31,25 +32,28 @@ public class ResolutionStats {
 
   public static ResolutionStats installAndMatch(Repository repo, Coordinates target, String gradleRef) throws IOException {
 
-    ResolutionStats result = new ResolutionStats(target);
     Set<Coordinates> grdRef = ResolutionStats.loadRef(gradleRef);
-    Map<Artifact, Path> binaries = repo.installRuntimeArtifactsAt(target);
+    ResolutionStats rs = new ResolutionStats(target);
+    ResolutionResult rr = repo.loadRuntimeArtifactsAt(target);
+    Map<Artifact, Path> binaries = repo.installLoadedArtifacts(rr);
+
     assertFalse(binaries.isEmpty());
+    rs.resolutionResult = rr;
 
     grdRef.forEach(refCoord -> {
       Optional<Coordinates> hit = binaries.keySet().stream()
           .filter(a -> a.getAt().equals(refCoord))
           .map(Artifact::getAt).findFirst();
-      if (hit.isPresent()) { result.hit.add(refCoord); }
-      else { result.miss.add(refCoord); }
+      if (hit.isPresent()) { rs.hit.add(refCoord); }
+      else { rs.miss.add(refCoord); }
     });
     binaries.keySet().forEach(a -> {
       if (!grdRef.contains(a.getAt())) {
-        result.slack.add(a.getAt());
+        rs.slack.add(a.getAt());
       }
     });
 
-    return result;
+    return rs;
   }
 
   @Override public String toString() {

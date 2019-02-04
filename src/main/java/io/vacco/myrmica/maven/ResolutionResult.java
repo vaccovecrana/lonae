@@ -10,26 +10,33 @@ public class ResolutionResult {
 
   public ResolutionResult(DependencyNode root) {
     this.root = Objects.requireNonNull(root);
-    Map<String, List<Artifact>> aGroup = flatten(root).map(dn -> dn.artifact)
+    Map<String, List<Artifact>> aGroup = flatten(root).map(dn -> dn.getArtifact())
         .collect(Collectors.toCollection(TreeSet::new)).stream()
         .collect(Collectors.groupingBy(a -> a.getAt().getBaseCoordinates()));
-    Set<Artifact> removeTargets = new TreeSet<>();
+    Map<Artifact, Artifact> replaceTargets = new TreeMap<>();
     aGroup.values().stream().filter(al -> al.size() > 1).forEach(al -> {
-      List<Artifact> versions = al.stream().sorted().collect(Collectors.toList());
-      versions.remove(versions.size() - 1);
-      removeTargets.addAll(versions);
+      List<Artifact> versions = al.stream()
+          .filter(a -> a.getMetadata().classifier == null)
+          .sorted().collect(Collectors.toList());
+      if (versions.size() > 0) {
+        Artifact replacement = versions.remove(versions.size() - 1);
+        versions.forEach(ra -> {
+          if (!ra.getAt().equals(replacement.getAt())) {
+            replaceTargets.put(ra, replacement);
+          }
+        });
+      }
     });
-    flatten(root).filter(dn -> removeTargets.contains(dn.artifact)).forEach(dn -> {
-      dn.parent.children.remove(dn); // TODO instead, nodes need their artifact version replaced by the selected default.
-      dn.parent = null;
-    });
-    this.artifacts = flatten(root).map(dn -> dn.artifact)
+    flatten(root).filter(dn -> replaceTargets.containsKey(dn.getArtifact()))
+        .forEach(dn -> dn.replaceWith(replaceTargets.get(dn.getArtifact())));
+    this.artifacts = flatten(root)
+        .map(DependencyNode::getEfectiveArtifact)
         .collect(Collectors.toCollection(TreeSet::new));
   }
 
   private void flattenTail(DependencyNode n0, List<DependencyNode> dl) {
     dl.add(n0);
-    n0.children.forEach(dnc -> flattenTail(dnc, dl));
+    n0.getChildren().forEach(dnc -> flattenTail(dnc, dl));
   }
 
   private Stream<DependencyNode> flatten(DependencyNode root0) {
@@ -38,7 +45,7 @@ public class ResolutionResult {
     return dl.stream();
   }
 
-  private void printTreeTail(DependencyNode n0, StringBuilder out, Set<String> visitedHashes,
+  private void printTreeTail(DependencyNode n0, StringBuilder out, Set<Integer> visitedHashes,
                              int level, int childIdx, int childCount) {
     for (int i = 0; i < level; i++) { out.append("  "); }
     if (level > 0) {
@@ -46,18 +53,22 @@ public class ResolutionResult {
       else if (childIdx == childCount - 1) out.append("\\-- ");
       else out.append("|-- ");
     }
-    String childrenHash = n0.children.stream()
-        .map(dn -> dn.artifact.getAt().toExternalForm())
-        .collect(Collectors.joining());
-    out.append(n0.artifact.getAt());
+    int childrenHash = n0.getChildren().stream()
+        .map(DependencyNode::getEfectiveArtifact)
+        .map(Artifact::toExternalForm)
+        .collect(Collectors.joining()).hashCode();
+    out.append(String.format("%s%s",
+        n0.getArtifact().getMetadata().classifier != null ?
+            n0.getArtifact().toExternalForm() : n0.getArtifact().getAt().toExternalForm(),
+        n0.getReplacement() != null ? String.format(" -> %s", n0.getReplacement().getAt().getVersion()) : ""));
     if (!visitedHashes.contains(childrenHash)) {
       out.append('\n');
-      for (int i = 0; i < n0.children.size(); i++) {
-        DependencyNode dnc = n0.children.get(i);
-        printTreeTail(dnc, out, visitedHashes, level + 1, i, n0.children.size());
+      for (int i = 0; i < n0.getChildren().size(); i++) {
+        DependencyNode dnc = n0.getChildren().get(i);
+        printTreeTail(dnc, out, visitedHashes, level + 1, i, n0.getChildren().size());
       }
     }
-    else if (!n0.children.isEmpty()) { out.append(" (*)\n"); }
+    else if (!n0.getChildren().isEmpty()) { out.append(" (*)\n"); }
     else { out.append('\n'); }
     visitedHashes.add(childrenHash);
   }

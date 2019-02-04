@@ -72,6 +72,15 @@ public class MyrmicaSpec {
       ResolutionStats rsSpark = ResolutionStats.installAndMatch(repo, spark, "/org.apache.spark^spark-core_2.12^2.4.0.grdl");
       ResolutionStats rsDl4j = ResolutionStats.installAndMatch(repo, dl4j, "/org.deeplearning4j^deeplearning4j-core^1.0.0-beta3.grdl");
 
+      log.info(rsAtomix.resolutionResult.printTree());
+      log.info(rsQueryDslJpa.resolutionResult.printTree());
+      log.info(rsArrowJdbc.resolutionResult.printTree());
+      log.info(rsGoogleApiClient.resolutionResult.printTree());
+      log.info(rsHibernateCore.resolutionResult.printTree());
+      log.info(rsSpring.resolutionResult.printTree());
+      log.info(rsSpark.resolutionResult.printTree());
+      log.info(rsDl4j.resolutionResult.printTree());
+
       log.info(rsAtomix.toString());
       log.info(rsQueryDslJpa.toString());
       log.info(rsArrowJdbc.toString());

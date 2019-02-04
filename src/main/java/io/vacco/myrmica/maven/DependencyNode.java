@@ -4,10 +4,12 @@ import java.util.*;
 
 public class DependencyNode {
 
-  public DependencyNode parent;
-  public final Pom pom;
-  public final Artifact artifact;
-  public final List<DependencyNode> children = new ArrayList<>();
+  private Artifact replacement;
+  private DependencyNode parent;
+
+  private final Pom pom;
+  private final Artifact artifact;
+  private final List<DependencyNode> children = new ArrayList<>();
 
   DependencyNode(Pom p, Artifact a, DependencyNode parent) {
     this.pom = Objects.requireNonNull(p);
@@ -41,9 +43,22 @@ public class DependencyNode {
     return false;
   }
 
+  void replaceWith(Artifact a) {
+    this.replacement = Objects.requireNonNull(a);
+  }
+
+  public Artifact getArtifact() { return artifact; }
+  public Artifact getReplacement() { return replacement; }
+  public List<DependencyNode> getChildren() { return children; }
+  public Pom getPom() { return pom; }
+  public Artifact getEfectiveArtifact() {
+    return replacement != null ? replacement : artifact;
+  }
+
   @Override public String toString() {
-    return String.format("[%s%s]",
+    return String.format("[%s%s]%s",
         parent != null ? String.format("%s <-- ", parent.pom.getRootArtifact().getBaseArtifactName()) : "",
-        pom.getRootArtifact().getBaseArtifactName());
+        pom.getRootArtifact().getBaseArtifactName(),
+        replacement != null ? String.format(" -> %s", replacement.getAt().getVersion()) : "");
   }
 }
