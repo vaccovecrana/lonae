@@ -20,7 +20,7 @@ public class ResolutionResult {
       removeTargets.addAll(versions);
     });
     flatten(root).filter(dn -> removeTargets.contains(dn.artifact)).forEach(dn -> {
-      dn.parent.children.remove(dn);
+      dn.parent.children.remove(dn); // TODO instead, nodes need their artifact version replaced by the selected default.
       dn.parent = null;
     });
     this.artifacts = flatten(root).map(dn -> dn.artifact)
