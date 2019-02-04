@@ -1,7 +1,6 @@
 package io.vacco.myrmica.maven;
 
 import org.joox.Match;
-
 import java.net.URI;
 import java.nio.file.*;
 import java.util.*;
@@ -83,8 +82,7 @@ public class Artifact implements Comparable<Artifact> {
   public void setScope(String scope) { this.scope = scope; }
 
   public boolean excludes(Artifact a) {
-    boolean excluded = exclusions.stream().anyMatch(e -> e.getAt().matchesGroupAndArtifact(a.getAt()));
-    return excluded;
+    return exclusions.stream().anyMatch(e -> e.getAt().matchesGroupAndArtifact(a.getAt()));
   }
 
   @Override public String toString() {

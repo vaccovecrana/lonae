@@ -10,7 +10,6 @@ import org.slf4j.*;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Set;
 
 import static j8spec.J8Spec.*;
 import static org.joox.JOOX.*;
@@ -55,12 +54,13 @@ public class MyrmicaSpec {
       pom.getDependencies().forEach(d -> log.info(d.getLocalPackagePath(p).toString()));
     });
     it("Can resolve the dependency hierarchy of a module's coordinates.", () -> {
-      Set<Artifact> rtDeps = repo.loadRuntimeArtifactsAt(spark);
-      assertFalse(rtDeps.isEmpty());
+      ResolutionResult rtDeps = repo.loadRuntimeArtifactsAt(spark);
+      assertFalse(rtDeps.artifacts.isEmpty());
+      log.info(rtDeps.printTree());
     });
     it("Can resolve dependencies for a module's coordinates which also specify native dependencies.", () -> {
-      Set<Artifact> openCvArt = repo.loadRuntimeArtifactsAt(opencv);
-      assertFalse(openCvArt.isEmpty());
+      ResolutionResult openCvArt = repo.loadRuntimeArtifactsAt(opencv);
+      assertFalse(openCvArt.artifacts.isEmpty());
     });
     it("Can install target runtime artifacts for large frameworks.", () -> {
       ResolutionStats rsAtomix = ResolutionStats.installAndMatch(repo, atomix, "/io.atomix^atomix^3.1.5.grdl");

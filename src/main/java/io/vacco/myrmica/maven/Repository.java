@@ -141,35 +141,28 @@ public class Repository {
    *     resolving-conflicts-using-the-dependency-tree.html
    *   </a>
    */
-  private void loadRtTail(DependencyNode context, Set<Artifact> resolved) {
+  private void loadRtTail(DependencyNode context) {
     if (context.artifact.isRuntimeClassPath()) {
-      resolved.add(context.artifact);
       Set<Artifact> deps = context.pom.getDependencies();
       for (Artifact rd : deps) {
         if (!rd.isRuntimeClassPath()) continue;
         if (context.excludes(rd)) continue;
         if (context.isTopLevelOverride(rd)) continue;
-        loadRtTail(new DependencyNode(buildPom(rd.getAt()), rd, context), resolved);
+        DependencyNode child = new DependencyNode(buildPom(rd.getAt()), rd, context);
+        context.children.add(child);
+        loadRtTail(child);
       }
     }
   }
 
-  public Set<Artifact> loadRuntimeArtifactsAt(Coordinates root) {
-    Set<Artifact> result = new TreeSet<>();
+  public ResolutionResult loadRuntimeArtifactsAt(Coordinates root) {
     DependencyNode n0 = new DependencyNode(buildPom(root));
-    loadRtTail(n0, result);
-    Map<String, List<Artifact>> o = result.stream().collect(Collectors.groupingBy(a -> a.getAt().getBaseCoordinates()));
-    o.values().stream().filter(al -> al.size() > 1).forEach(al -> {
-      List<Artifact> vDesc = al.stream().sorted().collect(Collectors.toList());
-      vDesc.remove(vDesc.size() - 1);
-      vDesc.forEach(result::remove);
-    });
-    return result;
+    loadRtTail(n0);
+    return new ResolutionResult(n0);
   }
 
   public Map<Artifact, Path> installRuntimeArtifactsAt(Coordinates root) {
-    Set<Artifact> result = loadRuntimeArtifactsAt(root);
-    return new TreeMap<>(result.parallelStream()
+    return new TreeMap<>(loadRuntimeArtifactsAt(root).artifacts.parallelStream()
         .collect(Collectors.toMap(Function.identity(), this::install)));
   }
 }

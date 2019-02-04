@@ -7,8 +7,7 @@ public class Constants {
   public static final String DEFAULT_ARTIFACT_TYPE = "jar";
 
   public enum PomTag {
-    id,
-    groupId, artifactId, version, scope, optional,
+    id, groupId, artifactId, version, scope, optional,
 
     dependencyManagement, dependencies, dependency, exclusions, exclusion, properties,
 

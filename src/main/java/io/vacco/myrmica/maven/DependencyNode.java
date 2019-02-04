@@ -1,12 +1,13 @@
 package io.vacco.myrmica.maven;
 
-import java.util.Objects;
+import java.util.*;
 
 public class DependencyNode {
 
-  final Pom pom;
-  final Artifact artifact;
-  private final DependencyNode parent;
+  public DependencyNode parent;
+  public final Pom pom;
+  public final Artifact artifact;
+  public final List<DependencyNode> children = new ArrayList<>();
 
   DependencyNode(Pom p, Artifact a, DependencyNode parent) {
     this.pom = Objects.requireNonNull(p);
