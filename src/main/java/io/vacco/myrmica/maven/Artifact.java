@@ -77,6 +77,7 @@ public class Artifact implements Comparable<Artifact> {
 
   public Coordinates getAt() { return at; }
   public Set<Artifact> getExclusions() { return exclusions; }
+  public Component getMetadata() { return metadata; }
 
   public String getScope() { return scope; }
   public void setScope(String scope) { this.scope = scope; }

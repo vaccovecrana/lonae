@@ -27,6 +27,7 @@ public class MyrmicaSpec {
     String localRepo = "/tmp/repo/";
     Repository repo = new Repository(localRepo, M2);
 
+    Coordinates atomix = new Coordinates("io.atomix", "atomix", "3.1.5");
     Coordinates arrowJdbc = new Coordinates("org.apache.arrow", "arrow-jdbc", "0.12.0");
     Coordinates googleApiClient = new Coordinates("com.google.api-client", "google-api-client", "1.28.0");
     Coordinates hibernateCore = new Coordinates("org.hibernate", "hibernate-core", "5.4.1.Final");
@@ -62,7 +63,7 @@ public class MyrmicaSpec {
       assertFalse(openCvArt.isEmpty());
     });
     it("Can install target runtime artifacts for large frameworks.", () -> {
-
+      ResolutionStats rsAtomix = ResolutionStats.installAndMatch(repo, atomix, "/io.atomix^atomix^3.1.5.grdl");
       ResolutionStats rsQueryDslJpa = ResolutionStats.installAndMatch(repo, queryDslJpa, "/com.querydsl^querydsl-jpa^4.2.1.grdl");
       ResolutionStats rsArrowJdbc = ResolutionStats.installAndMatch(repo, arrowJdbc, "/org.apache.arrow^arrow-jdbc^0.12.0.grdl");
       ResolutionStats rsGoogleApiClient = ResolutionStats.installAndMatch(repo, googleApiClient, "/com.google.api-client^google-api-client^1.28.0.grdl");
@@ -71,6 +72,7 @@ public class MyrmicaSpec {
       ResolutionStats rsSpark = ResolutionStats.installAndMatch(repo, spark, "/org.apache.spark^spark-core_2.12^2.4.0.grdl");
       ResolutionStats rsDl4j = ResolutionStats.installAndMatch(repo, dl4j, "/org.deeplearning4j^deeplearning4j-core^1.0.0-beta3.grdl");
 
+      log.info(rsAtomix.toString());
       log.info(rsQueryDslJpa.toString());
       log.info(rsArrowJdbc.toString());
       log.info(rsGoogleApiClient.toString());
@@ -78,6 +80,7 @@ public class MyrmicaSpec {
       log.info(rsSpring.toString());
       log.info(rsSpark.toString());
       log.info(rsDl4j.toString());
+      log.info("Done...");
     });
   }
 }

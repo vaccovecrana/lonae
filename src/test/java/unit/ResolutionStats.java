@@ -22,12 +22,11 @@ public class ResolutionStats {
     String [] lines = new Scanner(
         MyrmicaSpec.class.getResource(classPathLocation).openStream(), "UTF-8"
     ).useDelimiter("\\A").next().split("\n");
-    return new TreeSet<>(
-        Arrays.stream(lines)
-            .map(l0 -> l0.split(":"))
-            .map(l0 -> new Coordinates(l0[0], l0[1],
-                l0[2].contains("->") ? l0[2].split("->")[1] : l0[2])
-            ).collect(Collectors.toSet()));
+    return Arrays.stream(lines)
+        .map(l0 -> l0.split(":"))
+        .map(l0 -> new Coordinates(l0[0], l0[1],
+            l0[2].contains("->") ? l0[2].split("->")[1] : l0[2])
+        ).collect(Collectors.toCollection(TreeSet::new));
   }
 
   public static ResolutionStats installAndMatch(Repository repo, Coordinates target, String gradleRef) throws IOException {

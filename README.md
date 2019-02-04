@@ -17,9 +17,12 @@ repositories from within your client code.
 That said, `myrmica` will try to make a reasonable choice of run-time artifact
 selections based on a set of Maven coordinates that you provide.
 
+> NOTE: since "__reasonable__" has a very broad interpretation, please be sure
+> to read these usage notes in their entirety.
+
 ### Installation
 
-`TODO` - Maven artifact coming to JCenter and Maven Central soon.
+`TODO` - Maven artifacts coming to JCenter and Maven Central soon.
 
 ### Usage
 
@@ -31,9 +34,6 @@ Repository repo = new Repository(localRepo, M2);
 Coordinates arrowJdbc = new Coordinates("org.apache.arrow", "arrow-jdbc", "0.12.0");
 Map<Artifact, Path> binaries = repo.installRuntimeArtifactsAt(arrowJdbc);
 ```
-
-> NOTE: since "__reasonable__" has a very broad interpretation, please be sure
-> to read these usage notes in their entirety.
 
 ## Motivation
 
@@ -62,6 +62,13 @@ environment of an application.
 - Artifact MD5/SHA checksum verification on downloaded artifacts.
 
 Any Pull Requests to improve upon these points are more than welcome :).
+
+
+
+- Use fixed version numbers.
+- Try to publish uber-jar style shaded packages for larger applications (i.e. 
+dependency resolution accuracy starts suffering once complex dependency trees
+are specified).
 
 ## Similar projects
 
