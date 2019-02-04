@@ -7,7 +7,7 @@ A lightweight Maven dependency resolver.
 [`myrmica`](https://en.wikipedia.org/wiki/Myrmica) allows you to resolve dependency graphs for Maven artifacts and
 repositories from within your client code.
 
-*Quick disclaimer*: To make the best use of yor time (and mine):
+*Quick disclaimer*: To make the best use of your time (and mine):
 
 > This project, although functional, is still in an experimental stage. If you
 > are expecting to get artifacts resolved in the exact same way Maven
@@ -41,7 +41,7 @@ So far, I have yet to find a minimalistic library which supports M2 artifact
 resolution semantics. The libraries mentioned at the end of this document are
 more specialized in execution scopes other than run-time. In addition, they tend
 to bring in additional frameworks and dependencies of which I have very little
-to no control of (as well as deep understanding).
+to no control of (as well as a deep understanding of, for better or worse).
 
 Again, the purpose of `myrmica` is completely focused on the runtime execution
 environment of an application.
