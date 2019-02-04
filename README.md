@@ -63,7 +63,7 @@ environment of an application.
 
 Any Pull Requests to improve upon these points are more than welcome :).
 
-
+A few recommendations:
 
 - Use fixed version numbers.
 - Try to publish uber-jar style shaded packages for larger applications (i.e. 
