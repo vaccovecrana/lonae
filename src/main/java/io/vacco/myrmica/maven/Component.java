@@ -12,7 +12,7 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 /**
- * @see <a href="https://maven.apache.org/ref/3.6.0/maven-core/artifact-handlers.html}">artifact-handlers</a>
+ * @see <a href="https://maven.apache.org/ref/3.6.0/maven-core/artifact-handlers.html">artifact-handlers</a>
  */
 public class Component implements Cloneable {
 

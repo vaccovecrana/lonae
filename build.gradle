@@ -29,6 +29,10 @@ dependencies {
 }
 
 task sourceJar(type: Jar, dependsOn: classes) { from sourceSets.main.allSource }
+task javadocJar(type: Jar, dependsOn: javadoc) {
+  classifier = 'javadoc'
+  from javadoc.destinationDir
+}
 
 def pomConfig = {
   licenses {
@@ -63,6 +67,9 @@ publishing {
         root.appendNode('url', website)
         root.children().last() + pomConfig
       }
+    }
+    mavenJavadoc(MavenPublication) {
+      artifact(javadocJar) { classifier "javadoc" }
     }
   }
 }
