@@ -5,20 +5,20 @@ buildscript {
 
 plugins { id "com.jfrog.bintray" version "1.8.4" }
 
-apply plugin: 'com.github.ben-manes.versions'
-apply plugin: 'java'
-apply plugin: 'maven-publish'
+apply plugin: "com.github.ben-manes.versions"
+apply plugin: "java"
+apply plugin: "maven-publish"
 
 repositories { jcenter() }
 
-group 'io.vacco.myrmica'
-version '0.1.2'
+group "io.vacco.myrmica"
+version "0.1.2"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-def description = 'A lightweight Maven artifact and dependency resolver.'
-def website = 'https://github.com/vaccovecrana/myrmica'
+def projDesc = "A lightweight Maven artifact and dependency resolver."
+def website = "https://github.com/vaccovecrana/myrmica"
 
 dependencies {
   compile "org.slf4j:slf4j-api:1.7.25"
@@ -30,7 +30,7 @@ dependencies {
 
 task sourceJar(type: Jar, dependsOn: classes) { from sourceSets.main.allSource }
 task javadocJar(type: Jar, dependsOn: javadoc) {
-  classifier = 'javadoc'
+  classifier = "javadoc"
   from javadoc.destinationDir
 }
 
@@ -45,7 +45,7 @@ publishing {
       version project.version
       pom {
         name = project.name
-        description = description
+        description = projDesc
         url = website
         licenses {
           license {
@@ -68,22 +68,22 @@ publishing {
 }
 
 bintray {
-  user = System.getenv('BINTRAY_USER')
-  key = System.getenv('BINTRAY_KEY')
-  publications = ['mavenJava']
+  user = System.getenv("BINTRAY_USER")
+  key = System.getenv("BINTRAY_KEY")
+  publications = ["mavenJava"]
   pkg {
     repo = project.group
     name = project.name
-    userOrg = 'vaccovecrana'
-    licenses = ['Apache-2.0']
+    userOrg = "vaccovecrana"
+    licenses = ["Apache-2.0"]
     websiteUrl = website
-    issueTrackerUrl = 'https://github.com/vaccovecrana/myrmica/issues'
-    vcsUrl = 'https://github.com/vaccovecrana/myrmica.git'
-    labels = ['maven', 'dependency', 'resolver']
+    issueTrackerUrl = "https://github.com/vaccovecrana/myrmica/issues"
+    vcsUrl = "https://github.com/vaccovecrana/myrmica.git"
+    labels = ["maven", "dependency", "resolver"]
     publicDownloadNumbers = true
     version {
       name = project.version
-      desc = description
+      desc = projDesc
       gpg { sign = true }
     }
   }
