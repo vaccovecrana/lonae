@@ -12,7 +12,7 @@ apply plugin: 'maven-publish'
 repositories { jcenter() }
 
 group 'io.vacco.myrmica'
-version '0.1.1'
+version '0.1.2'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -34,42 +34,35 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
   from javadoc.destinationDir
 }
 
-def pomConfig = {
-  licenses {
-    license {
-      name 'The Apache Software License, Version 2.0'
-      url "http://www.apache.org/licenses/LICENSE-2.0.txt"
-      distribution "repo"
-    }
-  }
-  developers {
-    developer {
-      id "jjzazuet"
-      name "Jesus Zazueta"
-      email "jjzazuet@vaco.io"
-    }
-  }
-  scm { url website }
-}
-
 publishing {
   publications {
     mavenJava(MavenPublication) {
       from components.java
       artifact sourceJar { classifier "sources" }
+      artifact(javadocJar) { classifier "javadoc" }
       groupId project.group
       artifactId project.name
       version project.version
-      pom.withXml {
-        def root = asNode()
-        root.appendNode('description', description)
-        root.appendNode('name', project.name)
-        root.appendNode('url', website)
-        root.children().last() + pomConfig
+      pom {
+        name = project.name
+        description = description
+        url = website
+        licenses {
+          license {
+            name = "The Apache Software License, Version 2.0"
+            url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution = "repo"
+          }
+        }
+        developers {
+          developer {
+            id = "jjzazuet"
+            name = "Jesus Zazueta"
+            email = "jjzazuet@vacco.io"
+          }
+        }
+        scm { url = website }
       }
-    }
-    mavenJavadoc(MavenPublication) {
-      artifact(javadocJar) { classifier "javadoc" }
     }
   }
 }
@@ -77,7 +70,7 @@ publishing {
 bintray {
   user = System.getenv('BINTRAY_USER')
   key = System.getenv('BINTRAY_KEY')
-  publications = ['mavenJava', 'mavenJavadoc']
+  publications = ['mavenJava']
   pkg {
     repo = project.group
     name = project.name
