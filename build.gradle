@@ -77,7 +77,7 @@ publishing {
 bintray {
   user = System.getenv('BINTRAY_USER')
   key = System.getenv('BINTRAY_KEY')
-  publications = ['mavenJava']
+  publications = ['mavenJava', 'mavenJavadoc']
   pkg {
     repo = project.group
     name = project.name
