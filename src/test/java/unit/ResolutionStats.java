@@ -1,6 +1,10 @@
 package unit;
 
-import io.vacco.myrmica.maven.*;
+import io.vacco.myrmica.maven.impl.Repository;
+import io.vacco.myrmica.maven.impl.ResolutionResult;
+import io.vacco.myrmica.maven.schema.Artifact;
+import io.vacco.myrmica.maven.schema.Coordinates;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
@@ -25,7 +29,7 @@ public class ResolutionStats {
     ).useDelimiter("\\A").next().split("\n");
     return Arrays.stream(lines)
         .map(l0 -> l0.split(":"))
-        .map(l0 -> new Coordinates(l0[0], l0[1],
+        .map(l0 -> Coordinates.from(l0[0], l0[1],
             l0[2].contains("->") ? l0[2].split("->")[1] : l0[2])
         ).collect(Collectors.toCollection(TreeSet::new));
   }
@@ -42,14 +46,14 @@ public class ResolutionStats {
 
     grdRef.forEach(refCoord -> {
       Optional<Coordinates> hit = binaries.keySet().stream()
-          .filter(a -> a.getAt().equals(refCoord))
-          .map(Artifact::getAt).findFirst();
+          .filter(a -> a.at.equals(refCoord))
+          .map(a -> a.at).findFirst();
       if (hit.isPresent()) { rs.hit.add(refCoord); }
       else { rs.miss.add(refCoord); }
     });
     binaries.keySet().forEach(a -> {
-      if (!grdRef.contains(a.getAt())) {
-        rs.slack.add(a.getAt());
+      if (!grdRef.contains(a.at)) {
+        rs.slack.add(a.at);
       }
     });
 

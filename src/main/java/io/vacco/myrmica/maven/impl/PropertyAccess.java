@@ -1,4 +1,4 @@
-package io.vacco.myrmica.maven;
+package io.vacco.myrmica.maven.impl;
 
 import org.joox.Match;
 import org.slf4j.*;
@@ -6,7 +6,7 @@ import java.util.*;
 import java.util.regex.*;
 
 import static java.util.Objects.requireNonNull;
-import static io.vacco.myrmica.maven.Constants.*;
+import static io.vacco.myrmica.maven.schema.Constants.*;
 
 public class PropertyAccess {
 

@@ -1,4 +1,6 @@
-package io.vacco.myrmica.maven;
+package io.vacco.myrmica.maven.impl;
+
+import io.vacco.myrmica.maven.schema.Artifact;
 
 import java.util.*;
 import java.util.stream.*;
@@ -12,16 +14,16 @@ public class ResolutionResult {
     this.root = Objects.requireNonNull(root);
     Map<String, List<Artifact>> aGroup = flatten(root).map(dn -> dn.getArtifact())
         .collect(Collectors.toCollection(TreeSet::new)).stream()
-        .collect(Collectors.groupingBy(a -> a.getAt().getBaseCoordinates()));
+        .collect(Collectors.groupingBy(a -> a.at.getBaseCoordinates()));
     Map<Artifact, Artifact> replaceTargets = new TreeMap<>();
     aGroup.values().stream().filter(al -> al.size() > 1).forEach(al -> {
       List<Artifact> versions = al.stream()
-          .filter(a -> a.getMetadata().classifier == null)
+          .filter(a -> a.metadata.classifier == null)
           .sorted().collect(Collectors.toList());
       if (versions.size() > 0) {
         Artifact replacement = versions.remove(versions.size() - 1);
         versions.forEach(ra -> {
-          if (!ra.getAt().equals(replacement.getAt())) {
+          if (!ra.at.equals(replacement.at)) {
             replaceTargets.put(ra, replacement);
           }
         });
@@ -58,9 +60,9 @@ public class ResolutionResult {
         .map(Artifact::toExternalForm)
         .collect(Collectors.joining()).hashCode();
     out.append(String.format("%s%s",
-        n0.getArtifact().getMetadata().classifier != null ?
-            n0.getArtifact().toExternalForm() : n0.getArtifact().getAt().toExternalForm(),
-        n0.getReplacement() != null ? String.format(" -> %s", n0.getReplacement().getAt().getVersion()) : ""));
+        n0.getArtifact().metadata.classifier != null ?
+            n0.getArtifact().toExternalForm() : n0.getArtifact().at.toExternalForm(),
+        n0.getReplacement() != null ? String.format(" -> %s", n0.getReplacement().at.version) : ""));
     if (!visitedHashes.contains(childrenHash)) {
       out.append('\n');
       for (int i = 0; i < n0.getChildren().size(); i++) {

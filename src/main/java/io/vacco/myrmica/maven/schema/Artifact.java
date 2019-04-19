@@ -1,4 +1,4 @@
-package io.vacco.myrmica.maven;
+package io.vacco.myrmica.maven.schema;
 
 import org.joox.Match;
 import java.net.URI;
@@ -6,35 +6,17 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.vacco.myrmica.maven.Constants.*;
+import static io.vacco.myrmica.maven.schema.Constants.*;
 import static java.lang.String.format;
 
 public class Artifact implements Comparable<Artifact> {
 
-  private final Match xml;
-  private final Coordinates at;
-  private final Component metadata;
-  private final boolean optional;
-  private String scope;
+  public Coordinates at;
+  public Component metadata;
+  public boolean optional;
+  public String scope;
 
-  private final Set<Artifact> exclusions = new TreeSet<>();
-
-  public Artifact(Match xml) {
-    this.xml = Objects.requireNonNull(xml);
-    this.at = new Coordinates(xml);
-    this.scope = xml.child(Constants.PomTag.scope.toString()).text();
-    this.optional = Boolean.parseBoolean(xml.child(Constants.PomTag.optional.toString()).text());
-    this.exclusions.addAll(artifactsOf(xml.child(Constants.PomTag.exclusions.toString())));
-
-    Optional<Component> c = Component.forType(xml.child(ComponentTag.type.toString()).text());
-    if (!c.isPresent()) { c = Component.forPackaging(xml.child(ComponentTag.packaging.toString()).text()); }
-    if (!c.isPresent()) {
-      c = Component.forType(Constants.DEFAULT_ARTIFACT_TYPE);
-      c.get().setClassifier(xml);
-    }
-    this.metadata = c.get();
-    if (scope == null) { scope = scope_compile; }
-  }
+  public Set<Artifact> exclusions = new TreeSet<>();
 
   public String getBaseArtifactName() {
     return format("%s%s", at != null ? at.getBaseResourceName() : "",
@@ -74,15 +56,10 @@ public class Artifact implements Comparable<Artifact> {
     return false;
   }
 
-  public Coordinates getAt() { return at; }
-  public Set<Artifact> getExclusions() { return exclusions; }
-  public Component getMetadata() { return metadata; }
-
-  public String getScope() { return scope; }
   public void setScope(String scope) { this.scope = scope; }
 
   public boolean excludes(Artifact a) {
-    return exclusions.stream().anyMatch(e -> e.getAt().matchesGroupAndArtifact(a.getAt()));
+    return exclusions.stream().anyMatch(e -> e.at.matchesGroupAndArtifact(a.at));
   }
 
   @Override public String toString() {
@@ -91,7 +68,26 @@ public class Artifact implements Comparable<Artifact> {
   }
 
   public static Set<Artifact> artifactsOf(Match xmlDepNode) {
-    return xmlDepNode.children().each().stream().map(Artifact::new)
+    return xmlDepNode.children().each().stream().map(Artifact::from)
         .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  public static Artifact from(Match xml) {
+    Objects.requireNonNull(xml);
+    Artifact a = new Artifact();
+    a.at = Coordinates.from(xml);
+    a.scope = xml.child(Constants.PomTag.scope.toString()).text();
+    a.optional = Boolean.parseBoolean(xml.child(Constants.PomTag.optional.toString()).text());
+    a.exclusions.addAll(artifactsOf(xml.child(Constants.PomTag.exclusions.toString())));
+
+    Optional<Component> c = Component.forType(xml.child(ComponentTag.type.toString()).text());
+    if (!c.isPresent()) { c = Component.forPackaging(xml.child(ComponentTag.packaging.toString()).text()); }
+    if (!c.isPresent()) {
+      c = Component.forType(Constants.DEFAULT_ARTIFACT_TYPE);
+      c.get().setClassifier(xml);
+    }
+    a.metadata = c.get();
+    if (a.scope == null) { a.scope = scope_compile; }
+    return a;
   }
 }

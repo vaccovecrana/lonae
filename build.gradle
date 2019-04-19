@@ -13,7 +13,7 @@ apply plugin: "maven-publish"
 repositories { jcenter() }
 
 group "io.vacco.myrmica"
-version "0.1.3"
+version "0.2.0"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -27,6 +27,7 @@ dependencies {
   testCompile "org.slf4j:slf4j-simple:1.7.25"
   testCompile "junit:junit:4.12"
   testCompile "io.github.j8spec:j8spec:3.0.0"
+  testCompile "com.esotericsoftware.yamlbeans:yamlbeans:1.13"
 }
 
 task sourceJar(type: Jar, dependsOn: classes) { from sourceSets.main.allSource }

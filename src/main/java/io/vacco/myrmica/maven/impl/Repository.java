@@ -1,5 +1,8 @@
-package io.vacco.myrmica.maven;
+package io.vacco.myrmica.maven.impl;
 
+import io.vacco.myrmica.maven.schema.Artifact;
+import io.vacco.myrmica.maven.schema.Coordinates;
+import io.vacco.myrmica.maven.schema.Pom;
 import org.joox.Match;
 import org.slf4j.*;
 
@@ -12,8 +15,8 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.*;
 import static org.joox.JOOX.*;
-import static io.vacco.myrmica.maven.PropertyAccess.*;
-import static io.vacco.myrmica.maven.Constants.*;
+import static io.vacco.myrmica.maven.impl.PropertyAccess.*;
+import static io.vacco.myrmica.maven.schema.Constants.*;
 
 public class Repository {
 
@@ -75,7 +78,7 @@ public class Repository {
   private Optional<Coordinates> loadParent(Match pom) {
     Match p = pom.child(PomTag.parent.toString());
     if (p.size() == 0) return Optional.empty();
-    return Optional.of(new Coordinates(p));
+    return Optional.of(Coordinates.from(p));
   }
 
   private Match computePom(Coordinates coordinates) {
@@ -100,13 +103,13 @@ public class Repository {
 
     Map<String, String> rawProps = loadProperties(ePom.get());
     rawProps.put("project.build.directory", new File(".").getAbsolutePath());
-    rawProps.put("project.groupId", coordinates.getGroupId());
-    rawProps.put("project.artifactId", coordinates.getArtifactId());
-    rawProps.put("project.version", coordinates.getVersion());
+    rawProps.put("project.groupId", coordinates.groupId);
+    rawProps.put("project.artifactId", coordinates.artifactId);
+    rawProps.put("project.version", coordinates.version);
     if (parentCoords.isPresent()) {
-      rawProps.put("project.parent.groupId", parentCoords.get().getGroupId());
-      rawProps.put("project.parent.artifactId", parentCoords.get().getArtifactId());
-      rawProps.put("project.parent.version", parentCoords.get().getVersion());
+      rawProps.put("project.parent.groupId", parentCoords.get().groupId);
+      rawProps.put("project.parent.artifactId", parentCoords.get().artifactId);
+      rawProps.put("project.parent.version", parentCoords.get().version);
     }
 
     resolvePomKeyReferences(ePom.get(), resolveProperties(rawProps));
@@ -116,15 +119,15 @@ public class Repository {
   public Pom buildPom(Coordinates c) {
     Pom p = resolvedPoms.computeIfAbsent(c, c0 -> new Pom(computePom(c0)));
     List<Artifact> imports = p.getDefaultVersions().stream()
-        .filter(a -> a.getScope() != null)
-        .filter(a -> a.getScope().equals(scope_import))
-        .map(ai -> buildPom(ai.getAt()))
+        .filter(a -> a.scope != null)
+        .filter(a -> a.scope.equals(scope_import))
+        .map(ai -> buildPom(ai.at))
         .flatMap(p0 -> p0.getDefaultVersions().stream())
         .collect(Collectors.toList());
     Set<Artifact> importedDefaults = new TreeSet<>();
     for (Artifact ia : imports) {
       boolean alreadyImported = importedDefaults.stream()
-          .anyMatch(ia0 -> ia0.getAt().matchesGroupAndArtifact(ia.getAt()));
+          .anyMatch(ia0 -> ia0.at.matchesGroupAndArtifact(ia.at));
       if (!alreadyImported) {
         importedDefaults.add(ia);
       }
@@ -147,7 +150,7 @@ public class Repository {
         if (!rd.isRuntimeClassPath()) continue;
         if (context.excludes(rd)) continue;
         if (context.isTopLevelOverride(rd)) continue;
-        DependencyNode child = new DependencyNode(buildPom(rd.getAt()), rd, context);
+        DependencyNode child = new DependencyNode(buildPom(rd.at), rd, context);
         context.getChildren().add(child);
         loadRtTail(child);
       }

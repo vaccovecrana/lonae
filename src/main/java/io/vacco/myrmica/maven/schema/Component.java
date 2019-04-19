@@ -1,4 +1,4 @@
-package io.vacco.myrmica.maven;
+package io.vacco.myrmica.maven.schema;
 
 import org.joox.Match;
 
@@ -6,7 +6,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.vacco.myrmica.maven.Constants.*;
+import static io.vacco.myrmica.maven.schema.Constants.*;
 import static org.joox.JOOX.*;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
@@ -20,19 +20,8 @@ public class Component implements Cloneable {
   public String extension;
   public String packaging;
   public String classifier;
-  public final String language;
-  public final boolean addedToClasspath;
-
-  public Component(Match src) {
-    this.type = requireNonNull(src.child(ComponentTag.type.toString()).text());
-    this.extension = src.child(ComponentTag.extension.toString()).text();
-    this.packaging = src.child(ComponentTag.packaging.toString()).text();
-    setClassifier(src);
-    this.language = src.child(ComponentTag.language.toString()).text();
-    this.addedToClasspath = Boolean.parseBoolean(src.child(ComponentTag.addedToClasspath.toString()).text());
-    if (extension == null) extension = type;
-    if (packaging == null) packaging = type;
-  }
+  public String language;
+  public boolean addedToClasspath;
 
   public String toExternalForm() {
     return format("[%s%s%s%s%s%s]", format("t: %s", type),
@@ -68,7 +57,7 @@ public class Component implements Cloneable {
     try {
       URL handlers = Component.class.getResource("/io/vacco/myrmica/maven/artifact-handlers.xml");
       Match xml = $(handlers);
-      defaults.addAll(xml.find("configuration").each().stream().map(Component::new).collect(Collectors.toList()));
+      defaults.addAll(xml.find("configuration").each().stream().map(Component::from).collect(Collectors.toList()));
     } catch (Exception e) {
       throw new IllegalStateException("Cannot resolve default component artifact handlers.");
     }
@@ -87,6 +76,19 @@ public class Component implements Cloneable {
   public static Optional<Component> forPackaging(String p) {
     Optional<Component> result = defaults.stream().filter(cmp -> cmp.packaging.equals(p)).findFirst();
     return result.map(Component::cloneOf);
+  }
+  public static Component from(Match src) {
+    requireNonNull(src);
+    Component c = new Component();
+    c.type = requireNonNull(src.child(ComponentTag.type.toString()).text());
+    c.extension = src.child(ComponentTag.extension.toString()).text();
+    c.packaging = src.child(ComponentTag.packaging.toString()).text();
+    c.setClassifier(src);
+    c.language = src.child(ComponentTag.language.toString()).text();
+    c.addedToClasspath = Boolean.parseBoolean(src.child(ComponentTag.addedToClasspath.toString()).text());
+    if (c.extension == null) c.extension = c.type;
+    if (c.packaging == null) c.packaging = c.type;
+    return c;
   }
 
   @Override public String toString() { return toExternalForm(); }

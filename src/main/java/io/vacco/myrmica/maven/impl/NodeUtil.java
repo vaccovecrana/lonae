@@ -1,8 +1,10 @@
-package io.vacco.myrmica.maven;
+package io.vacco.myrmica.maven.impl;
 
+import io.vacco.myrmica.maven.schema.Artifact;
+import io.vacco.myrmica.maven.schema.Coordinates;
 import org.joox.Match;
 import java.util.Optional;
-import static io.vacco.myrmica.maven.Constants.*;
+import static io.vacco.myrmica.maven.schema.Constants.*;
 
 public class NodeUtil {
 
@@ -10,12 +12,12 @@ public class NodeUtil {
     String tn = n.tag();
     if (tn == null) return null;
     if (tn.equals(PomTag.dependency.toString())) {
-      Artifact a = new Artifact(n);
+      Artifact a = Artifact.from(n);
       return a.toExternalForm();
     } else if (tn.equals(PomTag.profile.toString())) {
       return n.child(PomTag.id.toString()).text();
     } else if (tn.equals(PomTag.exclusion.toString())) {
-      Coordinates c = new Coordinates(n);
+      Coordinates c = Coordinates.from(n);
       return c.toExternalForm();
     }
     return n.tag();

@@ -1,4 +1,4 @@
-package io.vacco.myrmica.maven;
+package io.vacco.myrmica.maven.schema;
 
 import org.joox.Match;
 import java.net.URI;
@@ -8,21 +8,9 @@ import static java.lang.String.format;
 
 public class Coordinates implements Comparable<Coordinates> {
 
-  private final String groupId;
-  private final String artifactId;
-  private String version;
-
-  public Coordinates(String groupId, String artifactId, String version) {
-    this.groupId = Objects.requireNonNull(groupId);
-    this.artifactId = Objects.requireNonNull(artifactId);
-    this.version = version;
-  }
-
-  public Coordinates(Match xml) {
-    this(xml.child(Constants.PomTag.groupId.toString()).text(),
-        xml.child(Constants.PomTag.artifactId.toString()).text(),
-        xml.child(Constants.PomTag.version.toString()).text());
-  }
+  public String groupId;
+  public String artifactId;
+  public String version;
 
   public URI getBaseUri(URI origin) {
     try {
@@ -80,8 +68,17 @@ public class Coordinates implements Comparable<Coordinates> {
         && this.artifactId.equalsIgnoreCase(mm0.artifactId);
   }
 
-  public String getGroupId() { return groupId; }
-  public String getArtifactId() { return artifactId; }
-  public String getVersion() { return version; }
-  public void setVersion(String version) { this.version = Objects.requireNonNull(version); }
+  public static Coordinates from(String groupId, String artifactId, String version) {
+    Coordinates c = new Coordinates();
+    c.groupId = Objects.requireNonNull(groupId);
+    c.artifactId = Objects.requireNonNull(artifactId);
+    c.version = version;
+    return c;
+  }
+
+  public static Coordinates from(Match xml) {
+    return from(xml.child(Constants.PomTag.groupId.toString()).text(),
+        xml.child(Constants.PomTag.artifactId.toString()).text(),
+        xml.child(Constants.PomTag.version.toString()).text());
+  }
 }

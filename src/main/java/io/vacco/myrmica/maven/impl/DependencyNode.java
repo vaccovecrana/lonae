@@ -1,4 +1,7 @@
-package io.vacco.myrmica.maven;
+package io.vacco.myrmica.maven.impl;
+
+import io.vacco.myrmica.maven.schema.Artifact;
+import io.vacco.myrmica.maven.schema.Pom;
 
 import java.util.*;
 
@@ -33,8 +36,8 @@ public class DependencyNode {
     while (n0 != null) {
       boolean overrides = n0.pom.getDependencies().stream()
           .filter(Artifact::isRuntimeClassPath).anyMatch(ta -> {
-            boolean sameCoords = ta.getAt().matchesGroupAndArtifact(a.getAt());
-            boolean diffVer = !ta.getAt().getVersion().equals(a.getAt().getVersion());
+            boolean sameCoords = ta.at.matchesGroupAndArtifact(a.at);
+            boolean diffVer = !ta.at.version.equals(a.at.version);
             return sameCoords && diffVer;
           });
       if (overrides) return true;
@@ -59,6 +62,6 @@ public class DependencyNode {
     return String.format("[%s%s]%s",
         parent != null ? String.format("%s <-- ", parent.pom.getRootArtifact().getBaseArtifactName()) : "",
         pom.getRootArtifact().getBaseArtifactName(),
-        replacement != null ? String.format(" -> %s", replacement.getAt().getVersion()) : "");
+        replacement != null ? String.format(" -> %s", replacement.at.version) : "");
   }
 }

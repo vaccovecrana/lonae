@@ -1,12 +1,21 @@
 package unit;
 
-import io.vacco.myrmica.maven.*;
+import com.esotericsoftware.yamlbeans.YamlReader;
+import com.esotericsoftware.yamlbeans.YamlWriter;
+import io.vacco.myrmica.maven.impl.NodeUtil;
+import io.vacco.myrmica.maven.impl.Repository;
+import io.vacco.myrmica.maven.impl.ResolutionResult;
+import io.vacco.myrmica.maven.schema.Artifact;
+import io.vacco.myrmica.maven.schema.Coordinates;
+import io.vacco.myrmica.maven.schema.Pom;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.joox.Match;
 import org.junit.runner.RunWith;
 import org.slf4j.*;
 
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,7 +24,7 @@ import java.util.Map;
 import static j8spec.J8Spec.*;
 import static org.joox.JOOX.*;
 import static org.junit.Assert.*;
-import static io.vacco.myrmica.maven.PropertyAccess.*;
+import static io.vacco.myrmica.maven.impl.PropertyAccess.*;
 
 @DefinedOrder
 @RunWith(J8SpecRunner.class)
@@ -30,16 +39,16 @@ public class MyrmicaSpec {
     String badRepo = "/tmp/b4dr3p0";
     Repository repo = new Repository(localRepo, M2);
 
-    Coordinates atomix = new Coordinates("io.atomix", "atomix", "3.1.5");
-    Coordinates arrowJdbc = new Coordinates("org.apache.arrow", "arrow-jdbc", "0.12.0");
-    Coordinates googleApiClient = new Coordinates("com.google.api-client", "google-api-client", "1.28.0");
-    Coordinates hibernateCore = new Coordinates("org.hibernate", "hibernate-core", "5.4.1.Final");
-    Coordinates queryDslJpa = new Coordinates("com.querydsl", "querydsl-jpa", "4.2.1");
-    Coordinates spark = new Coordinates("org.apache.spark", "spark-core_2.12", "2.4.0");
-    Coordinates spring = new Coordinates("org.springframework.boot", "spring-boot-starter-web", "2.1.2.RELEASE");
-    Coordinates opencv = new Coordinates("org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4");
-    Coordinates dl4j = new Coordinates("org.deeplearning4j", "deeplearning4j-core", "1.0.0-beta3");
-    Coordinates keyCloakAdapterSpi = new Coordinates("org.keycloak", "keycloak-adapter-spi", "6.0.0");
+    Coordinates atomix = Coordinates.from("io.atomix", "atomix", "3.1.5");
+    Coordinates arrowJdbc = Coordinates.from("org.apache.arrow", "arrow-jdbc", "0.12.0");
+    Coordinates googleApiClient = Coordinates.from("com.google.api-client", "google-api-client", "1.28.0");
+    Coordinates hibernateCore = Coordinates.from("org.hibernate", "hibernate-core", "5.4.1.Final");
+    Coordinates queryDslJpa = Coordinates.from("com.querydsl", "querydsl-jpa", "4.2.1");
+    Coordinates spark = Coordinates.from("org.apache.spark", "spark-core_2.12", "2.4.0");
+    Coordinates spring = Coordinates.from("org.springframework.boot", "spring-boot-starter-web", "2.1.2.RELEASE");
+    Coordinates opencv = Coordinates.from("org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4");
+    Coordinates dl4j = Coordinates.from("org.deeplearning4j", "deeplearning4j-core", "1.0.0-beta3");
+    Coordinates keyCloakAdapterSpi = Coordinates.from("org.keycloak", "keycloak-adapter-spi", "6.0.0");
 
     it("Resolves a null key property to a null value.", () -> assertNull(removeVarTokens(null)));
     it("Can merge two XML documents.", () -> {
@@ -76,6 +85,19 @@ public class MyrmicaSpec {
     it("Can install dependencies for a single artifact.", () -> {
       Map<Artifact, Path> dependencies = repo.installRuntimeArtifactsAt(keyCloakAdapterSpi);
       assertFalse(dependencies.isEmpty());
+    });
+    it("Can serialize/deserialize schema objects.", () -> {
+      Map<Artifact, Path> dependencies = repo.installRuntimeArtifactsAt(keyCloakAdapterSpi);
+      Artifact a0 = dependencies.keySet().iterator().next();
+      String path = "/tmp/data.yml";
+      YamlWriter w = new YamlWriter(new FileWriter(path));
+      w.write(a0);
+      w.close();
+      YamlReader r = new YamlReader(new FileReader(path));
+      Artifact a1 = r.read(Artifact.class);
+      log.info(a1.toString());
+      assertNotNull(a1);
+      assertEquals(a0, a1);
     });
     it("Can install target runtime artifacts for large frameworks.", () -> {
       ResolutionStats rsAtomix = ResolutionStats.installAndMatch(repo, atomix, "/io.atomix^atomix^3.1.5.grdl");

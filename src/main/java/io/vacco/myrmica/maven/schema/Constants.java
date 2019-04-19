@@ -1,4 +1,4 @@
-package io.vacco.myrmica.maven;
+package io.vacco.myrmica.maven.schema;
 
 import java.util.Arrays;
 
