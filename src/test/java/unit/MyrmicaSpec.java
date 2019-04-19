@@ -10,10 +10,12 @@ import org.slf4j.*;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 import static j8spec.J8Spec.*;
 import static org.joox.JOOX.*;
 import static org.junit.Assert.*;
+import static io.vacco.myrmica.maven.PropertyAccess.*;
 
 @DefinedOrder
 @RunWith(J8SpecRunner.class)
@@ -23,7 +25,9 @@ public class MyrmicaSpec {
     Logger log = LoggerFactory.getLogger(MyrmicaSpec.class);
 
     String M2 = "https://repo.maven.apache.org/maven2/";
+    String M2b4d = "https://repo.maven.apache.org/maven2";
     String localRepo = "/tmp/repo/";
+    String badRepo = "/tmp/b4dr3p0";
     Repository repo = new Repository(localRepo, M2);
 
     Coordinates atomix = new Coordinates("io.atomix", "atomix", "3.1.5");
@@ -35,7 +39,9 @@ public class MyrmicaSpec {
     Coordinates spring = new Coordinates("org.springframework.boot", "spring-boot-starter-web", "2.1.2.RELEASE");
     Coordinates opencv = new Coordinates("org.bytedeco.javacpp-presets", "opencv-platform", "4.0.1-1.4.4");
     Coordinates dl4j = new Coordinates("org.deeplearning4j", "deeplearning4j-core", "1.0.0-beta3");
+    Coordinates keyCloakAdapterSpi = new Coordinates("org.keycloak", "keycloak-adapter-spi", "6.0.0");
 
+    it("Resolves a null key property to a null value.", () -> assertNull(removeVarTokens(null)));
     it("Can merge two XML documents.", () -> {
       Match logbackParent = $(MyrmicaSpec.class.getResourceAsStream("/logback-parent.pom"));
       Match logbackClassic = $(MyrmicaSpec.class.getResourceAsStream("/logback-classic.pom"));
@@ -48,9 +54,14 @@ public class MyrmicaSpec {
       assertEquals("https://repo.maven.apache.org/maven2/org/apache/spark/spark-core_2.12/2.4.0/spark-core_2.12-2.4.0.pom", remotePom.toString());
       assertEquals("/tmp/repo/org/apache/spark/spark-core_2.12/2.4.0/spark-core_2.12-2.4.0.pom", localPom.toString());
     });
+    it("Cannot initialize a repository on an invalid system path.",
+        c -> c.expected(IllegalArgumentException.class), () -> new Repository(badRepo, M2));
+    it("Cannot initialize a repository on an invalid remote path",
+        c -> c.expected(IllegalArgumentException.class), () -> new Repository(localRepo, M2b4d));
     it("Can resolve dependencies from a POM definition for a module's coordinates.", () -> {
       Pom pom = repo.buildPom(spring);
       Path p = Paths.get(localRepo);
+      log.info(p.toString());
       pom.getDependencies().forEach(d -> log.info(d.getLocalPackagePath(p).toString()));
     });
     it("Can resolve the dependency hierarchy of a module's coordinates.", () -> {
@@ -61,6 +72,10 @@ public class MyrmicaSpec {
     it("Can resolve dependencies for a module's coordinates which also specify native dependencies.", () -> {
       ResolutionResult openCvArt = repo.loadRuntimeArtifactsAt(opencv);
       assertFalse(openCvArt.artifacts.isEmpty());
+    });
+    it("Can install dependencies for a single artifact.", () -> {
+      Map<Artifact, Path> dependencies = repo.installRuntimeArtifactsAt(keyCloakAdapterSpi);
+      assertFalse(dependencies.isEmpty());
     });
     it("Can install target runtime artifacts for large frameworks.", () -> {
       ResolutionStats rsAtomix = ResolutionStats.installAndMatch(repo, atomix, "/io.atomix^atomix^3.1.5.grdl");

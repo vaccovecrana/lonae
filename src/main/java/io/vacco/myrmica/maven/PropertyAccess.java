@@ -8,12 +8,12 @@ import java.util.regex.*;
 import static java.util.Objects.requireNonNull;
 import static io.vacco.myrmica.maven.Constants.*;
 
-class PropertyAccess {
+public class PropertyAccess {
 
   private static final Logger log = LoggerFactory.getLogger(PropertyAccess.class);
   private static final Pattern propertyRegex = Pattern.compile(".*?\\$\\{(.*?)\\}.*?");
 
-  private static String removeVarTokens(String key) {
+  public static String removeVarTokens(String key) {
     if (key == null) {
       return null;
     }
