@@ -36,8 +36,11 @@ public class MmProperties {
       String propVal = rawVal == null ? "?" : rawVal.toString();
       if (rawVal == null && log.isTraceEnabled()) {
         log.trace("Unresolved property usage: [{}]", property);
+      } else if (propVal.contains("${")) {
+        property = dereference(propVal, ctx);
+      } else {
+        property = property.replace(keyRef, propVal);
       }
-      property = property.replace(keyRef, propVal);
     }
     return removeVarTokens(property);
   }
@@ -54,7 +57,7 @@ public class MmProperties {
   public static void loadProperties(Match rootPom, MmVarContext ctx) {
     ctx.push();
     for (Match prop : rootPom.child(PomTag.properties.toString()).children().each()) {
-      ctx.set(prop.tag(), prop.text()); // TODO maybe do resolution here...
+      ctx.set(prop.tag(), prop.text());
     }
   }
 }

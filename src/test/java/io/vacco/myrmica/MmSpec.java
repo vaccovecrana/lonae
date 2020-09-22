@@ -29,7 +29,9 @@ public class MmSpec {
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, "debug");
 
     final Logger log = LoggerFactory.getLogger(MmSpec.class);
-    final MmCoordinates springCoords = MmCoordinates.from("org.springframework:spring-core:5.2.9.RELEASE");
+    final MmCoordinates jacksonDatabind = MmCoordinates.from("com.fasterxml.jackson.core:jackson-databind:2.11.2");
+    final MmCoordinates springBootStarterWeb = MmCoordinates.from("org.springframework.boot:spring-boot-starter-web:2.3.4.RELEASE");
+    final MmCoordinates springCore = MmCoordinates.from("org.springframework:spring-core:5.2.9.RELEASE");
     final MmCoordinates logbackClassic = MmCoordinates.from("ch.qos.logback:logback-classic:1.2.3");
     final MmCoordinates sparkCore = MmCoordinates.from("org.apache.spark:spark-core_2.12:2.4.0");
 
@@ -40,7 +42,7 @@ public class MmSpec {
       });
     });
 
-    describe(MmCoordinates.class.getCanonicalName(), () -> it("can parse artifact coordinates",  () -> log.info(springCoords.toString())));
+    describe(MmCoordinates.class.getCanonicalName(), () -> it("can parse artifact coordinates",  () -> log.info(springCore.toString())));
 
     describe(MmArtifact.class.getCanonicalName(), () -> {
       it("can load POM artifact dependencies", () -> {
@@ -59,13 +61,18 @@ public class MmSpec {
 
     describe(MmRepository.class.getCanonicalName(), () -> {
       it("can generate path location data for POM artifacts", () -> {
-        Path pomRelativePath = MmArtifacts.pomPathOf(springCoords);
+        Path pomRelativePath = MmArtifacts.pomPathOf(springCore);
         log.info(pomRelativePath.toString());
       });
       it("can load sanitized POM data", () -> {
         MmRepository repo = new MmRepository("/tmp/repo", "https://repo1.maven.org/maven2/");
-        Match pomXml = MmPoms.computePom(sparkCore, repo.localRoot, repo.remoteRoot);
+        Match pomXml = MmPoms.computePom(jacksonDatabind, repo.localRoot, repo.remoteRoot);
         log.info(pomXml.toString());
+      });
+      it("can build a POM dependency graph", () -> {
+        MmRepository repo = new MmRepository("/tmp/repo", "https://repo1.maven.org/maven2/");
+        OxGrph<String, MmPom> g = repo.buildPomGraph(springBootStarterWeb);
+        log.info(OxTgf.apply(g));
       });
     });
 

@@ -1,7 +1,8 @@
 package io.vacco.myrmica.maven.impl;
 
 import io.vacco.myrmica.maven.schema.*;
-import org.joox.Match;
+import io.vacco.myrmica.maven.util.MmPoms;
+import io.vacco.oriax.core.*;
 import org.slf4j.*;
 
 import java.net.URI;
@@ -17,7 +18,7 @@ public class MmRepository {
 
   public final Path localRoot;
   public final URI remoteRoot;
-  public final Map<MmCoordinates, Match> resolvedPoms = new TreeMap<>();
+  public final Map<MmCoordinates, MmPom> resolvedPoms = new TreeMap<>();
 
   public MmRepository(String localRootPath, String remotePath) {
     try {
@@ -37,6 +38,36 @@ public class MmRepository {
     }
   }
 
+  private MmPom loadPom(MmCoordinates c) {
+    return resolvedPoms.computeIfAbsent(c, c0 -> new MmPom(c, MmPoms.computePom(c, localRoot, remoteRoot)));
+  }
+
+  private OxVtx<String, MmPom> asVtx(MmCoordinates c) {
+    return new OxVtx<>(c.getArtifactFormat(), loadPom(c));
+  }
+
+  private void buildPomTail(MmCoordinates c, OxGrph<String, MmPom> g) {
+    OxVtx<String, MmPom> vtx = asVtx(c);
+    if (g.vtx.contains(vtx)) { return; }
+    g.vtx.add(vtx);
+    for (MmArtifact rtd : vtx.data.getRuntimeDependencies()) {
+      buildPomTail(rtd.at, g);
+      String artId = rtd.at.getArtifactFormat();
+      Optional<OxVtx<String, MmPom>> oRtdVtx = g.vtx.stream().filter(v0 -> v0.id.equals(artId)).findFirst();
+      if (oRtdVtx.isPresent()) {
+        g.addEdge(vtx, oRtdVtx.get());
+        if (!rtd.at.getVersionFormat().equals(oRtdVtx.get().data.coordinates.getVersionFormat())) {
+          oRtdVtx.get().data.extraVersions.add(rtd.at);
+        }
+      }
+    }
+  }
+
+  public OxGrph<String, MmPom> buildPomGraph(MmCoordinates c) {
+    OxGrph<String, MmPom> graph = new OxGrph<>();
+    buildPomTail(c, graph);
+    return graph;
+  }
 
 /*
 
@@ -59,26 +90,7 @@ public class MmRepository {
     }
   }
 
-  public Pom buildPom(Coordinates c) {
-    Pom p = resolvedPoms.computeIfAbsent(c, c0 -> new Pom(computePom(c0)));
-    List<Artifact> imports = p.getDefaultVersions().stream()
-        .filter(a -> a.scope != null)
-        .filter(a -> a.scope.equals(scope_import))
-        .map(ai -> buildPom(ai.at))
-        .flatMap(p0 -> p0.getDefaultVersions().stream())
-        .collect(Collectors.toList());
-    Set<Artifact> importedDefaults = new TreeSet<>();
-    for (Artifact ia : imports) {
-      boolean alreadyImported = importedDefaults.stream()
-          .anyMatch(ia0 -> ia0.at.matchesGroupAndArtifact(ia.at));
-      if (!alreadyImported) {
-        importedDefaults.add(ia);
-      }
-    }
-    p.getDefaultVersions().addAll(importedDefaults);
-    p.computeEffectiveDependencies();
-    return p;
-  }
+
 
   /**
    * @see
