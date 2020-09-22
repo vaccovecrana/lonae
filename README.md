@@ -23,6 +23,7 @@ selections based on a set of Maven coordinates that you provide.
 ### Installation
 
 `TODO` - Maven artifacts coming to JCenter and Maven Central soon.
+`TODO` - Update tests to run against https://javalibs.com/charts/dependencies
 
 ### Usage
 

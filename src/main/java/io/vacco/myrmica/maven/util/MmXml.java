@@ -1,24 +1,23 @@
-package io.vacco.myrmica.maven.impl;
+package io.vacco.myrmica.maven.util;
 
-import io.vacco.myrmica.maven.schema.Artifact;
-import io.vacco.myrmica.maven.schema.Coordinates;
+import io.vacco.myrmica.maven.schema.*;
 import org.joox.Match;
 import java.util.Optional;
-import static io.vacco.myrmica.maven.schema.Constants.*;
+import static io.vacco.myrmica.maven.schema.MmConstants.*;
 
-public class NodeUtil {
+public class MmXml {
 
   private static String idOf(Match n) {
     String tn = n.tag();
     if (tn == null) return null;
     if (tn.equals(PomTag.dependency.toString())) {
-      Artifact a = Artifact.from(n);
-      return a.toExternalForm();
+      MmArtifact a = MmArtifacts.fromXml(n);
+      return a.getBaseArtifactName();
     } else if (tn.equals(PomTag.profile.toString())) {
       return n.child(PomTag.id.toString()).text();
     } else if (tn.equals(PomTag.exclusion.toString())) {
-      Coordinates c = Coordinates.from(n);
-      return c.toExternalForm();
+      MmCoordinates c = MmCoordinatesUt.fromXml(n);
+      return c.getVersionFormat();
     }
     return n.tag();
   }
@@ -47,14 +46,14 @@ public class NodeUtil {
     return l;
   }
 
-  static Match filterTop(Match n, String ... tagExclusions) {
+  public static Match filterTop(Match n, String ... tagExclusions) {
     for (String tagExclusion : tagExclusions) {
       n.child(tagExclusion).remove();
     }
     return n;
   }
 
-  static boolean isTextContent(Match n) {
+  public static boolean isTextContent(Match n) {
     int size = n.xpath("./*").size();
     return size == 0;
   }
