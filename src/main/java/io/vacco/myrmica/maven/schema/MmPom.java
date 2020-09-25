@@ -10,6 +10,7 @@ public class MmPom {
 
   public Set<MmArtifact> dependencies = new TreeSet<>();
   public Set<MmArtifact> dependencyManagement = new TreeSet<>();
+  public Set<MmArtifact> extraVersions = new TreeSet<>();
 
   @Override public String toString() {
     return String.format("pom[%s]", at);

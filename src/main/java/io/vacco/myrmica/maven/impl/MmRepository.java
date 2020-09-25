@@ -2,8 +2,8 @@ package io.vacco.myrmica.maven.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vacco.myrmica.maven.schema.*;
-import io.vacco.myrmica.maven.xform.MmPatchLeft;
-import io.vacco.myrmica.maven.xform.MmXform;
+import io.vacco.myrmica.maven.xform.*;
+import io.vacco.oriax.core.*;
 import org.slf4j.*;
 
 import java.io.File;
@@ -68,10 +68,12 @@ public class MmRepository {
         URI remotePom = remoteRoot.resolve(pomPath.toString());
         log.info("Fetching [{}]", remotePom);
         Files.copy(remotePom.toURL().openStream(), target);
-      } else { log.info("Resolving [{}]", target); }
+      } else if (log.isDebugEnabled()) { log.debug("Resolving [{}]", target); }
       MmPom pom = MmXform.forPom(target.toUri().toURL());
-      if (pom.at.groupId == null || pom.at.version == null) {
+      if (pom.at.groupId == null) {
         pom.at.groupId = pom.parent.groupId;
+      }
+      if (pom.at.version == null) {
         pom.at.version = pom.parent.version;
       }
       return pom;
@@ -81,11 +83,11 @@ public class MmRepository {
     }
   }
 
-  public MmPom computePom(MmCoordinates coordinates) {
+  public MmPom computePom(MmCoordinates c) {
     try {
       List<MmPom> poms = new ArrayList<>();
       List<MmPom> pomsRev;
-      Optional<MmCoordinates> oc = Optional.of(coordinates);
+      Optional<MmCoordinates> oc = Optional.of(c);
 
       while (oc.isPresent()) {
         MmPom p = loadPom(oc.get());
@@ -100,9 +102,9 @@ public class MmRepository {
       System.getProperties().forEach((k, v) -> varCtx.set(k.toString(), v));
       varCtx.push();
       varCtx.set("project.build.directory", new File(".").getAbsolutePath());
-      varCtx.set("project.groupId", coordinates.groupId);
-      varCtx.set("project.artifactId", coordinates.artifactId);
-      varCtx.set("project.version", coordinates.version);
+      varCtx.set("project.groupId", c.groupId);
+      varCtx.set("project.artifactId", c.artifactId);
+      varCtx.set("project.version", c.version);
 
       if (poms.size() > 1) {
         varCtx.set("project.parent.groupId", poms.get(1).at.groupId);
@@ -140,46 +142,52 @@ public class MmRepository {
           log.warn("Unresolved dependency with import scope in <dependencies> section: {}", dep.toString());
         }
       }
-
       return pom;
-
     } catch (Exception e) {
-      throw new MmException.MmPomResolutionException(coordinates, e);
+      throw new MmException.MmPomResolutionException(c, e);
     }
   }
 
-/*
-
   private OxVtx<String, MmPom> asVtx(MmCoordinates c) {
-    return new OxVtx<>(c.getArtifactFormat(), loadPom(c));
+    return new OxVtx<>(c.artifactFormat(), computePom(c));
   }
 
-  private void buildPomTail(MmCoordinates c, OxGrph<String, MmPom> g) {
+  private void buildGraphTail(MmCoordinates c, Set<MmCoordinates> parentExclusions, OxGrph<String, MmPom> g) {
     OxVtx<String, MmPom> vtx = asVtx(c);
     if (g.vtx.contains(vtx)) { return; }
     g.vtx.add(vtx);
-    for (MmArtifact rtd : vtx.data.getRuntimeDependencies()) {
-      buildPomTail(rtd.at, g);
-      String artId = rtd.at.getArtifactFormat();
-      Optional<OxVtx<String, MmPom>> oRtdVtx = g.vtx.stream().filter(v0 -> v0.id.equals(artId)).findFirst();
-      if (oRtdVtx.isPresent()) {
-        g.addEdge(vtx, oRtdVtx.get());
-        if (!rtd.at.getVersionFormat().equals(oRtdVtx.get().data.coordinates.getVersionFormat())) {
-          oRtdVtx.get().data.extraVersions.add(rtd.at);
+
+    Set<MmArtifact> rtArts = vtx.data.dependencies.stream()
+        .filter(MmArtifact::inRuntime)
+        .filter(art -> parentExclusions.stream().noneMatch(crd -> crd.artifactFormat().equals(art.at.artifactFormat())))
+        .collect(toSet());
+
+    for (MmArtifact ra : rtArts) {
+      Set<MmCoordinates> raEx = new HashSet<>(ra.meta.exclusions);
+      raEx.addAll(parentExclusions);
+      buildGraphTail(ra.at, raEx, g);
+
+      String artId = ra.at.artifactFormat();
+      Optional<OxVtx<String, MmPom>> rtPom = g.vtx.stream().filter(v0 -> v0.id.equals(artId)).findFirst();
+
+      if (rtPom.isPresent()) {
+        g.addEdge(vtx, rtPom.get());
+        String artVer = ra.at.versionFormat();
+        String depVer = rtPom.get().data.at.versionFormat();
+        if (!artVer.equals(depVer)) {
+          rtPom.get().data.extraVersions.add(ra);
         }
       }
+
     }
   }
 
   public OxGrph<String, MmPom> buildPomGraph(MmCoordinates c) {
     OxGrph<String, MmPom> graph = new OxGrph<>();
-    buildPomTail(c, graph);
+    buildGraphTail(c, new HashSet<>(), graph);
     return graph;
   }
-*/
-/*
 
-*/
   /*
   private Path install(Artifact a) {
     requireNonNull(a);
@@ -195,28 +203,6 @@ public class MmRepository {
     } catch (Exception e) {
       String msg = String.format("Unable to install artifact [%s]", a);
       throw new IllegalStateException(msg, e);
-    }
-  }
-
-
-
-  /**
-   * @see
-   *   <a href="https://maven.apache.org/plugins/maven-dependency-plugin/examples/resolving-conflicts-using-the-dependency-tree.html">
-   *     resolving-conflicts-using-the-dependency-tree.html
-   *   </a>
-   *
-  private void loadRtTail(DependencyNode context) {
-    if (context.getArtifact().isRuntimeClassPath()) {
-      Set<Artifact> deps = context.getPom().getDependencies();
-      for (Artifact rd : deps) {
-        if (!rd.isRuntimeClassPath()) continue;
-        if (context.excludes(rd)) continue;
-        if (context.isTopLevelOverride(rd)) continue;
-        DependencyNode child = new DependencyNode(buildPom(rd.at), rd, context);
-        context.getChildren().add(child);
-        loadRtTail(child);
-      }
     }
   }
 

@@ -20,6 +20,13 @@ public class MmArtifact implements Comparable<MmArtifact> {
     );
   }
 
+  public boolean inRuntime() {
+    boolean notRt = meta.optional
+        || meta.scopeType == MmArtifactMeta.Scope.Test
+        || meta.scopeType == MmArtifactMeta.Scope.Provided;
+    return !notRt;
+  }
+
   @Override public int compareTo(MmArtifact o) { return baseArtifactName().compareTo(o.baseArtifactName()); }
   @Override public int hashCode() { return baseArtifactName().hashCode(); }
   @Override public boolean equals(Object o) {

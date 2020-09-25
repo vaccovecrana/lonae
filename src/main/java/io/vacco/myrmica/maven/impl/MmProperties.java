@@ -71,9 +71,7 @@ public class MmProperties {
       for (MmCoordinates ex : art.meta.exclusions) {
         dereference(ex, ctx);
       }
-      if (art.comp.type == null) {
-        art.comp = MmRepository.defaultComps.get(MmComponent.Type.jar);
-      }
+      art.comp = MmRepository.defaultComps.get(art.comp.type == null ? MmComponent.Type.jar : art.comp.type);
     }
     if (log.isTraceEnabled()) {
       try {

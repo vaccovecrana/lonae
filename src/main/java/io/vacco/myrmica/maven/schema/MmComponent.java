@@ -14,7 +14,8 @@ public class MmComponent {
     jar, @JsonProperty("test-jar") testJar, @JsonProperty("java-source") javaSource, javadoc,
     ejb, @JsonProperty("ejb-client") ejbClient, ear,
     @JsonProperty("maven-plugin") mavenPlugin,
-    war, rar
+    war, rar,
+    @JsonEnumDefaultValue unknown
   }
 
   public Type type, packaging;

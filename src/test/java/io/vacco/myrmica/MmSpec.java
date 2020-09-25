@@ -4,6 +4,8 @@ import io.vacco.myrmica.maven.impl.MmRepository;
 import io.vacco.myrmica.maven.schema.*;
 import io.vacco.myrmica.maven.xform.MmPatchLeft;
 import io.vacco.myrmica.maven.xform.MmXform;
+import io.vacco.oriax.core.OxGrph;
+import io.vacco.oriax.util.OxTgf;
 import io.vacco.shax.logging.ShOption;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
@@ -35,7 +37,7 @@ public class MmSpec {
   static {
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_DEVMODE, "true");
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, "true");
-    ShOption.setSysProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, "debug");
+    ShOption.setSysProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, "info");
 
     final Logger log = LoggerFactory.getLogger(MmSpec.class);
 
@@ -48,7 +50,7 @@ public class MmSpec {
     final MmCoordinates slf4jSimple = MmCoordinates.from("org.slf4j:slf4j-simple:1.7.30");
 
     final MmCoordinates[] testCoords = new MmCoordinates[] {
-      jacksonDatabind, springBootStarterWeb, springCore, logbackClassic, sparkCore, jerseyClient, slf4jSimple
+        slf4jSimple, logbackClassic, jerseyClient, jacksonDatabind, jacksonDatabind, sparkCore, springBootStarterWeb
     };
 
     it("Can merge objects from right to left", () -> {
@@ -66,10 +68,17 @@ public class MmSpec {
         Map<MmComponent.Type, MmComponent> components = MmXform.forComponents(MmSpec.class.getResource("/io/vacco/myrmica/maven/artifact-handlers.xml"));
         log.info("{}", kv("comps", components));
       });
-      it("can load raw POM data", () -> {
+      it("can compute effective POM data", () -> {
         MmRepository repo = new MmRepository("/tmp/repo", "https://repo1.maven.org/maven2/");
         for (MmCoordinates testCoord : testCoords) {
           MmPom o = repo.computePom(testCoord);
+        }
+      });
+      it("can render POM dependency graphs", () -> {
+        MmRepository repo = new MmRepository("/tmp/repo", "https://repo1.maven.org/maven2/");
+        for (MmCoordinates testCoord : testCoords) {
+          OxGrph<String, MmPom> g = repo.buildPomGraph(testCoord);
+          log.info(OxTgf.apply(g));
         }
       });
     });

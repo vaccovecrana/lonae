@@ -1,5 +1,6 @@
 package io.vacco.myrmica.maven.xform;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vacco.myrmica.maven.schema.*;
 import org.joox.Match;
@@ -17,6 +18,10 @@ public class MmXform {
 
   private static final Logger log = LoggerFactory.getLogger(MmXform.class);
   private static final ObjectMapper om = new ObjectMapper();
+
+  static {
+    om.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
+  }
 
   public static String
       at = "at", parent = "parent",
