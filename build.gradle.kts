@@ -1,12 +1,6 @@
-buildscript {
-  repositories {
-    jcenter(); gradlePluginPortal()
-    maven { name = "VaccoOss"; setUrl("https://dl.bintray.com/vaccovecrana/vacco-oss") }
-  }
-  dependencies { classpath("io.vacco:common-build-gradle-plugin:0.5.0") }
+plugins {
+  id("io.vacco.common-build") version "0.5.1"
 }
-
-apply{plugin(io.vacco.common.CbPlugin::class.java)}
 
 group = "io.vacco.myrmica"
 version = "0.8.0"
@@ -22,14 +16,16 @@ configure<JavaPluginExtension> {
   targetCompatibility = JavaVersion.VERSION_1_8
 }
 
+configure<io.vacco.gradle.plugin.cphell.ChPluginExtension> {
+  resourceExclusions.add("module-info.class")
+}
+
 val api by configurations
-val implementation by configurations
-val testImplementation by configurations
 
 dependencies {
   api("org.slf4j:slf4j-api:1.7.30")
   implementation("org.jooq:joox-java-6:1.6.0")
+  implementation("com.fasterxml.jackson.core:jackson-databind:2.11.2")
   implementation("io.vacco.oriax:oriax:0.1.0")
-  testImplementation("io.vacco.shax:shax:1.7.30.0.0.4")
-  testImplementation("com.esotericsoftware.yamlbeans:yamlbeans:1.13")
+  testImplementation("io.vacco.shax:shax:1.7.30.0.0.6")
 }

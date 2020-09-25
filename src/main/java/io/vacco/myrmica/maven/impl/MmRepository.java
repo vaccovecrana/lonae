@@ -1,24 +1,31 @@
 package io.vacco.myrmica.maven.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vacco.myrmica.maven.schema.*;
-import io.vacco.myrmica.maven.util.MmPoms;
-import io.vacco.oriax.core.*;
+import io.vacco.myrmica.maven.xform.MmPatchLeft;
+import io.vacco.myrmica.maven.xform.MmXform;
 import org.slf4j.*;
 
-import java.net.URI;
+import java.io.File;
+import java.net.*;
 import java.nio.file.*;
 import java.util.*;
 
 import static java.util.Objects.*;
 import static java.lang.String.*;
+import static io.vacco.myrmica.maven.impl.MmProperties.*;
+import static java.util.stream.Collectors.*;
 
 public class MmRepository {
 
   private static final Logger log = LoggerFactory.getLogger(MmRepository.class);
+  private static final ObjectMapper om = new ObjectMapper();
+  private static final URL compXml = MmRepository.class.getResource("/io/vacco/myrmica/maven/artifact-handlers.xml");
+
+  public static final Map<MmComponent.Type, MmComponent> defaultComps = MmXform.forComponents(compXml);
 
   public final Path localRoot;
   public final URI remoteRoot;
-  public final Map<MmCoordinates, MmPom> resolvedPoms = new TreeMap<>();
 
   public MmRepository(String localRootPath, String remotePath) {
     try {
@@ -38,9 +45,107 @@ public class MmRepository {
     }
   }
 
-  private MmPom loadPom(MmCoordinates c) {
-    return resolvedPoms.computeIfAbsent(c, c0 -> new MmPom(c, MmPoms.computePom(c, localRoot, remoteRoot)));
+  public static Path getResourcePath(MmCoordinates coordinates) {
+    return Paths.get(
+        coordinates.groupId.replace(".", "/"),
+        coordinates.artifactId, coordinates.version
+    );
   }
+
+  public Path pomPathOf(MmCoordinates coordinates) {
+    MmArtifact art = new MmArtifact();
+    art.at = coordinates;
+    art.comp = defaultComps.get(MmComponent.Type.pom);
+    return getResourcePath(coordinates).resolve(art.baseArtifactName());
+  }
+
+  public MmPom loadPom(MmCoordinates c) {
+    try {
+      Path pomPath = pomPathOf(c);
+      Path target = localRoot.resolve(pomPath);
+      if (!target.toFile().getParentFile().exists()) { target.toFile().getParentFile().mkdirs(); }
+      if (!target.toFile().exists()) {
+        URI remotePom = remoteRoot.resolve(pomPath.toString());
+        log.info("Fetching [{}]", remotePom);
+        Files.copy(remotePom.toURL().openStream(), target);
+      } else { log.info("Resolving [{}]", target); }
+      MmPom pom = MmXform.forPom(target.toUri().toURL());
+      if (pom.at.groupId == null || pom.at.version == null) {
+        pom.at.groupId = pom.parent.groupId;
+        pom.at.version = pom.parent.version;
+      }
+      return pom;
+    }
+    catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  public MmPom computePom(MmCoordinates coordinates) {
+    try {
+      List<MmPom> poms = new ArrayList<>();
+      List<MmPom> pomsRev;
+      Optional<MmCoordinates> oc = Optional.of(coordinates);
+
+      while (oc.isPresent()) {
+        MmPom p = loadPom(oc.get());
+        poms.add(p);
+        oc = p.parent != null ? Optional.of(p.parent) : Optional.empty();
+      }
+
+      pomsRev = new ArrayList<>(poms);
+      Collections.reverse(pomsRev);
+      MmVarContext varCtx = new MmVarContext();
+
+      System.getProperties().forEach((k, v) -> varCtx.set(k.toString(), v));
+      varCtx.push();
+      varCtx.set("project.build.directory", new File(".").getAbsolutePath());
+      varCtx.set("project.groupId", coordinates.groupId);
+      varCtx.set("project.artifactId", coordinates.artifactId);
+      varCtx.set("project.version", coordinates.version);
+
+      if (poms.size() > 1) {
+        varCtx.set("project.parent.groupId", poms.get(1).at.groupId);
+        varCtx.set("project.parent.artifactId", poms.get(1).at.artifactId);
+        varCtx.set("project.parent.version", poms.get(1).at.version);
+      }
+
+      pomsRev.forEach(pom -> pom.properties.forEach(varCtx::set));
+      poms.forEach(pom -> resolveVarReferences(pom, varCtx));
+
+      MmVarContext depCtx = new MmVarContext();
+
+      pomsRev.forEach(pom -> {
+        Set<MmArtifact> imports = pom.dependencyManagement.stream()
+            .filter(art -> art.meta.scopeType == MmArtifactMeta.Scope.Import)
+            .flatMap(art -> computePom(art.at).dependencyManagement.stream()).collect(toSet());
+        pom.dependencyManagement.addAll(imports);
+        pom.dependencyManagement.forEach(art -> depCtx.set(art.at.artifactFormat(), art));
+        depCtx.push();
+      });
+
+      Optional<MmPom> ePom = new MmPatchLeft().onMultiple(pomsRev);
+      if (!ePom.isPresent()) { throw new IllegalStateException("Unable to merge POM hierarchy " + poms); }
+      if (log.isDebugEnabled()) {
+        log.debug(om.writerWithDefaultPrettyPrinter().writeValueAsString(ePom.get()));
+      }
+
+      MmPom pom = ePom.get();
+      for (MmArtifact dep : pom.dependencies) {
+        if (dep.at.version == null) {
+          MmArtifact mDep = (MmArtifact) depCtx.get(dep.at.artifactFormat());
+          dep.at = mDep.at;
+        }
+      }
+
+      return pom;
+
+    } catch (Exception e) {
+      throw new MmException.MmPomResolutionException(coordinates, e);
+    }
+  }
+
+/*
 
   private OxVtx<String, MmPom> asVtx(MmCoordinates c) {
     return new OxVtx<>(c.getArtifactFormat(), loadPom(c));
@@ -68,7 +173,7 @@ public class MmRepository {
     buildPomTail(c, graph);
     return graph;
   }
-
+*/
 /*
 
 */

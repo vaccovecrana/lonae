@@ -1,4 +1,4 @@
-package io.vacco.myrmica.maven.util;
+package io.vacco.myrmica.maven.impl;
 
 import java.util.*;
 
@@ -33,7 +33,7 @@ public class MmVarContext {
   }
 
   public void push() {
-    Map<String, Object> newScope = freeScopes.size() > 0 ? freeScopes.remove(freeScopes.size() - 1) : new HashMap<String, Object>();
+    Map<String, Object> newScope = freeScopes.size() > 0 ? freeScopes.remove(freeScopes.size() - 1) : new HashMap<>();
     scopes.add(newScope);
   }
 
