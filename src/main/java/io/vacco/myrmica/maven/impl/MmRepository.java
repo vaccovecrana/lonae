@@ -136,6 +136,9 @@ public class MmRepository {
           MmArtifact mDep = (MmArtifact) depCtx.get(dep.at.artifactFormat());
           dep.at = mDep.at;
         }
+        if (dep.meta.scopeType == MmArtifactMeta.Scope.Import) {
+          log.warn("Unresolved dependency with import scope in <dependencies> section: {}", dep.toString());
+        }
       }
 
       return pom;
