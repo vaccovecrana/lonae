@@ -34,24 +34,35 @@ public class MmSpec {
     }
   }
 
+  public static final String[] testCoords = new String[] {
+      "jackson-databind:2.11.2", "org.springframework.boot:spring-boot-starter-web:2.3.4.RELEASE",
+      "org.springframework:spring-core:5.2.9.RELEASE", "ch.qos.logback:logback-classic:1.2.3",
+      "org.apache.spark:spark-core_2.12:2.4.0", "org.glassfish.jersey.core:jersey-client:2.22.2",
+      "org.slf4j:slf4j-simple:1.7.30"
+  };
+
+  public static final String[] validationCoords = new String[] {
+      "org.slf4j:slf4j-api:1.7.30",
+      "com.google.guava:guava:29.0-jre", "org.slf4j:slf4j-log4j12:1.7.30",
+      "org.scala-lang:scala-library:2.13.2", "commons-io:commons-io:2.7",
+      "org.springframework.boot:spring-boot-starter-test:2.3.3.RELEASE",
+      "org.assertj:assertj-core:3.17.0", "org.testng:testng:7.3.0", "org.projectlombok:lombok:1.18.12",
+      // "org.apache.hadoop:hadoop-common:3.3.0",
+      "com.google.code.findbugs:jsr305:3.0.2",
+      "mysql:mysql-connector-java:8.0.21", "com.h2database:h2:1.4.200",
+      "org.apache.httpcomponents:httpclient:4.5.12", "com.google.code.gson:gson:2.8.6",
+      "org.apache.arrow:arrow-jdbc:0.12.0", "io.atomix:atomix:3.1.5", "com.querydsl:querydsl-jpa:4.2.1",
+      "com.fasterxml.jackson.module:jackson-module-scala_2.12:2.6.7.1",
+      "com.google.api-client:google-api-client:1.28.0", "org.hibernate:hibernate-core:5.4.1.Final",
+      "org.deeplearning4j:deeplearning4j-core:1.0.0-beta3"
+  };
+
   static {
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_DEVMODE, "true");
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, "true");
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, "info");
 
     final Logger log = LoggerFactory.getLogger(MmSpec.class);
-
-    final MmCoordinates jacksonDatabind = MmCoordinates.from("com.fasterxml.jackson.core:jackson-databind:2.11.2");
-    final MmCoordinates springBootStarterWeb = MmCoordinates.from("org.springframework.boot:spring-boot-starter-web:2.3.4.RELEASE");
-    final MmCoordinates springCore = MmCoordinates.from("org.springframework:spring-core:5.2.9.RELEASE");
-    final MmCoordinates logbackClassic = MmCoordinates.from("ch.qos.logback:logback-classic:1.2.3");
-    final MmCoordinates sparkCore = MmCoordinates.from("org.apache.spark:spark-core_2.12:2.4.0");
-    final MmCoordinates jerseyClient = MmCoordinates.from("org.glassfish.jersey.core:jersey-client:2.22.2");
-    final MmCoordinates slf4jSimple = MmCoordinates.from("org.slf4j:slf4j-simple:1.7.30");
-
-    final MmCoordinates[] testCoords = new MmCoordinates[] {
-        slf4jSimple, logbackClassic, jerseyClient, jacksonDatabind, jacksonDatabind, sparkCore, springBootStarterWeb
-    };
 
     it("Can merge objects from right to left", () -> {
       Optional<Flop> f = new MmPatchLeft().onMultiple(
@@ -70,16 +81,16 @@ public class MmSpec {
       });
       it("can compute effective POM data", () -> {
         MmRepository repo = new MmRepository("/tmp/repo", "https://repo1.maven.org/maven2/");
-        for (MmCoordinates testCoord : testCoords) {
-          MmPom o = repo.computePom(testCoord);
-        }
+        Arrays.stream(validationCoords).map(MmCoordinates::from).forEach(coord -> {
+          MmPom o = repo.computePom(coord);
+        });
       });
       it("can render POM dependency graphs", () -> {
         MmRepository repo = new MmRepository("/tmp/repo", "https://repo1.maven.org/maven2/");
-        for (MmCoordinates testCoord : testCoords) {
-          OxGrph<String, MmPom> g = repo.buildPomGraph(testCoord);
+        Arrays.stream(validationCoords).map(MmCoordinates::from).forEach(coord -> {
+          OxGrph<String, MmPom> g = repo.buildPomGraph(coord);
           log.info(OxTgf.apply(g));
-        }
+        });
       });
     });
   }
