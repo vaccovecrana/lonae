@@ -42,6 +42,7 @@ public class MmSpec {
   };
 
   public static final String[] validationCoords = new String[] {
+      "org.bytedeco:javacv:1.4.3",
       "org.slf4j:slf4j-api:1.7.30",
       "com.google.guava:guava:29.0-jre", "org.slf4j:slf4j-log4j12:1.7.30",
       "org.scala-lang:scala-library:2.13.2", "commons-io:commons-io:2.7",
@@ -60,7 +61,7 @@ public class MmSpec {
   static {
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_DEVMODE, "true");
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, "true");
-    ShOption.setSysProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, "info");
+    ShOption.setSysProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, "debug");
 
     final Logger log = LoggerFactory.getLogger(MmSpec.class);
 
