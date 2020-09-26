@@ -26,18 +26,22 @@ public class MmProperties {
     return format("${%s}", in);
   }
 
+  private static String dereferenceKey(String keyRef, MmVarContext ctx) {
+    Object rawVal = ctx.get(keyRef);
+    String propVal = rawVal == null ? "???" : rawVal.toString();
+    if (propVal.contains("${")) { return dereference(propVal, ctx); }
+    return propVal;
+  }
+
   private static String dereference(String property, MmVarContext ctx) {
-    for (String keyRef : scanProperties(property)) {
-      Object rawVal = ctx.get(keyRef);
-      String propVal = rawVal == null ? "???" : rawVal.toString();
-      if (rawVal == null) {
+    List<String> keyRefs = scanProperties(property);
+    for (String keyRef : keyRefs) {
+      String val = dereferenceKey(keyRef, ctx);
+      if (val == null) {
         log.warn("Unresolved property usage: [{}]", property);
         property = property.replace(toPropFmt(keyRef), format("${%s = ???}", keyRef));
-      } else if (propVal.contains("${")) {
-        property = dereference(propVal, ctx);
-      } else {
-        property = property.replace(toPropFmt(keyRef), propVal);
       }
+      property = property.replace(toPropFmt(keyRef), val);
     }
     return property;
   }
@@ -52,26 +56,27 @@ public class MmProperties {
     return in.substring(0, 1).toUpperCase() + in.substring(1);
   }
 
+  private static void resolveReferencesOf(MmArtifact art, MmVarContext ctx) {
+    if (art.meta.scope != null) {
+      art.meta.scope = toPCase(dereference(art.meta.scope, ctx));
+      art.meta.scopeType = MmArtifactMeta.Scope.valueOf(art.meta.scope);
+    }
+    dereference(art.at, ctx);
+    for (MmCoordinates ex : art.meta.exclusions) {
+      dereference(ex, ctx);
+    }
+    art.comp = MmRepository.defaultComps.get(art.comp.type == null ? MmComponent.Type.jar : art.comp.type);
+  }
+
   public static void resolveVarReferences(MmPom pom, MmVarContext ctx) {
     pom.properties.entrySet().stream()
         .filter(e -> e.getValue().contains("${"))
         .forEach(e -> e.setValue(dereference(e.getValue(), ctx)));
-
-    Set<MmArtifact> l0Arts = new HashSet<>();
-
-    if (pom.dependencies != null) { l0Arts.addAll(pom.dependencies); }
-    if (pom.dependencyManagement != null) { l0Arts.addAll(pom.dependencyManagement); }
-
-    for (MmArtifact art : l0Arts) {
-      if (art.meta.scope != null) {
-        art.meta.scope = toPCase(dereference(art.meta.scope, ctx));
-        art.meta.scopeType = MmArtifactMeta.Scope.valueOf(art.meta.scope);
-      }
-      dereference(art.at, ctx);
-      for (MmCoordinates ex : art.meta.exclusions) {
-        dereference(ex, ctx);
-      }
-      art.comp = MmRepository.defaultComps.get(art.comp.type == null ? MmComponent.Type.jar : art.comp.type);
+    if (pom.dependencies != null) {
+      pom.dependencies.forEach(art -> resolveReferencesOf(art, ctx));
+    }
+    if (pom.dependencyManagement != null) {
+      pom.dependencyManagement.forEach(art -> resolveReferencesOf(art, ctx));
     }
     if (log.isTraceEnabled()) {
       try {
