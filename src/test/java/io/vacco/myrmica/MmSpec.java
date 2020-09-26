@@ -2,9 +2,8 @@ package io.vacco.myrmica;
 
 import io.vacco.myrmica.maven.impl.MmRepository;
 import io.vacco.myrmica.maven.schema.*;
-import io.vacco.myrmica.maven.xform.MmPatchLeft;
-import io.vacco.myrmica.maven.xform.MmXform;
-import io.vacco.oriax.core.OxGrph;
+import io.vacco.myrmica.maven.xform.*;
+import io.vacco.oriax.core.*;
 import io.vacco.oriax.util.OxTgf;
 import io.vacco.shax.logging.ShOption;
 import j8spec.annotation.DefinedOrder;
@@ -12,11 +11,13 @@ import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
 import org.slf4j.*;
 
+import java.nio.file.*;
 import java.util.*;
 
 import static j8spec.J8Spec.*;
 import static io.vacco.shax.logging.ShArgument.*;
 import static org.junit.Assert.*;
+import static java.lang.String.*;
 
 @DefinedOrder @RunWith(J8SpecRunner.class)
 public class MmSpec {
@@ -45,11 +46,7 @@ public class MmSpec {
       "org.bytedeco:javacv:1.4.3",
       "org.slf4j:slf4j-api:1.7.30",
       "com.google.guava:guava:29.0-jre", "org.slf4j:slf4j-log4j12:1.7.30",
-      "org.scala-lang:scala-library:2.13.2", "commons-io:commons-io:2.7",
-      "org.springframework.boot:spring-boot-starter-test:2.3.3.RELEASE",
-      "org.assertj:assertj-core:3.17.0", "org.testng:testng:7.3.0", "org.projectlombok:lombok:1.18.12",
-      // "org.apache.hadoop:hadoop-common:3.3.0",
-      "com.google.code.findbugs:jsr305:3.0.2",
+      "org.scala-lang:scala-library:2.13.2", "org.testng:testng:7.3.0",
       "mysql:mysql-connector-java:8.0.21", "com.h2database:h2:1.4.200",
       "org.apache.httpcomponents:httpclient:4.5.12", "com.google.code.gson:gson:2.8.6",
       "org.apache.arrow:arrow-jdbc:0.12.0", "io.atomix:atomix:3.1.5", "com.querydsl:querydsl-jpa:4.2.1",
@@ -58,12 +55,49 @@ public class MmSpec {
       "org.deeplearning4j:deeplearning4j-core:1.0.0-beta3"
   };
 
+  public static final String[] comparisonCoords = new String [] {
+      "org.apache.spark:spark-core_2.12:2.4.0",
+      "org.deeplearning4j:deeplearning4j-core:1.0.0-beta3",
+      "org.springframework.boot:spring-boot-starter-web:2.3.4.RELEASE"
+  };
+
   static {
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_DEVMODE, "true");
-    ShOption.setSysProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, "true");
-    ShOption.setSysProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, "debug");
+    ShOption.setSysProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, "false");
+    ShOption.setSysProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, "info");
 
     final Logger log = LoggerFactory.getLogger(MmSpec.class);
+    final MmRepository repo = new MmRepository("/tmp/repo", "https://repo1.maven.org/maven2/");
+
+    it("Can compare resolved dependecy graphs against Gradle references", () -> {
+      for (String cc : comparisonCoords) {
+        String gradleFile = format("%s.deps", cc.replace(":", "^"));
+        List<String> lines =  Files.readAllLines(Paths.get("./src/test/resources", gradleFile));
+        OxGrph<String, String> gradleGraph = MmGradleGraph.process(lines);
+        OxGrph<String, MmPom> mmGraph = repo.buildPomGraph(MmCoordinates.from(cc));
+        log.info("==================================================");
+        log.info(cc);
+        log.info("--------------------------------------------------");
+        int hit = 0, miss = 0, slack = 0;
+        for (OxVtx<String, MmPom> v : mmGraph.vtx) {
+          if (gradleGraph.vtx.contains(v)) {
+            hit = hit + 1;
+          } else {
+            slack = slack + 1;
+            log.info("slack: {}", v);
+          }
+        }
+        for (OxVtx<String, String> v : gradleGraph.vtx) {
+          if (!mmGraph.vtx.contains(v)) {
+            miss = miss + 1;
+            log.info("miss:  {}", v);
+          }
+        }
+        log.info("--------------------------------------------------");
+        log.info("hit: {}, miss: {}, slack: {}", hit, miss, slack);
+        log.info("==================================================\n");
+      }
+    });
 
     it("Can merge objects from right to left", () -> {
       Optional<Flop> f = new MmPatchLeft().onMultiple(
@@ -81,13 +115,11 @@ public class MmSpec {
         log.info("{}", kv("comps", components));
       });
       it("can compute effective POM data", () -> {
-        MmRepository repo = new MmRepository("/tmp/repo", "https://repo1.maven.org/maven2/");
         Arrays.stream(validationCoords).map(MmCoordinates::from).forEach(coord -> {
           MmPom o = repo.computePom(coord);
         });
       });
       it("can render POM dependency graphs", () -> {
-        MmRepository repo = new MmRepository("/tmp/repo", "https://repo1.maven.org/maven2/");
         Arrays.stream(validationCoords).map(MmCoordinates::from).forEach(coord -> {
           OxGrph<String, MmPom> g = repo.buildPomGraph(coord);
           log.info(OxTgf.apply(g));

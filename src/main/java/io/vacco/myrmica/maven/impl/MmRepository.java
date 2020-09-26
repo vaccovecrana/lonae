@@ -1,6 +1,5 @@
 package io.vacco.myrmica.maven.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vacco.myrmica.maven.schema.*;
 import io.vacco.myrmica.maven.xform.*;
 import io.vacco.oriax.core.*;
@@ -19,7 +18,6 @@ import static java.util.stream.Collectors.*;
 public class MmRepository {
 
   private static final Logger log = LoggerFactory.getLogger(MmRepository.class);
-  private static final ObjectMapper om = new ObjectMapper();
   private static final URL compXml = MmRepository.class.getResource("/io/vacco/myrmica/maven/artifact-handlers.xml");
 
   public static final Map<MmComponent.Type, MmComponent> defaultComps = MmXform.forComponents(compXml);
@@ -98,15 +96,18 @@ public class MmRepository {
       pomsRev = new ArrayList<>(poms);
       Collections.reverse(pomsRev);
       MmVarContext varCtx = new MmVarContext();
+      File pwd = new File(".");
 
       System.getProperties().forEach((k, v) -> varCtx.set(k.toString(), v));
       varCtx.push();
-      varCtx.set("project.build.directory", new File(".").getAbsolutePath());
+      varCtx.set("project.basedir", pwd.getAbsolutePath());
+      varCtx.set("project.build.directory", pwd.getAbsolutePath());
       varCtx.set("project.groupId", c.groupId);
       varCtx.set("project.artifactId", c.artifactId);
       varCtx.set("project.version", c.version);
 
       if (poms.size() > 1) {
+        varCtx.set("project.parent.basedir", pwd.getAbsolutePath());
         varCtx.set("project.parent.groupId", poms.get(1).at.groupId);
         varCtx.set("project.parent.artifactId", poms.get(1).at.artifactId);
         varCtx.set("project.parent.version", poms.get(1).at.version);
@@ -129,7 +130,7 @@ public class MmRepository {
       Optional<MmPom> ePom = new MmPatchLeft().onMultiple(pomsRev);
       if (!ePom.isPresent()) { throw new IllegalStateException("Unable to merge POM hierarchy " + poms); }
       if (log.isDebugEnabled()) {
-        log.debug(om.writerWithDefaultPrettyPrinter().writeValueAsString(ePom.get()));
+        MmJsonLog.jsonLogOf(ePom.get());
       }
 
       MmPom pom = ePom.get();

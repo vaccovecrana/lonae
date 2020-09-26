@@ -1,6 +1,5 @@
 package io.vacco.myrmica.maven.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vacco.myrmica.maven.schema.*;
 import org.slf4j.*;
 import java.util.*;
@@ -11,7 +10,6 @@ import static java.lang.String.format;
 public class MmProperties {
 
   private static final Logger log = LoggerFactory.getLogger(MmProperties.class);
-  private static final ObjectMapper om = new ObjectMapper();
   private static final Pattern propertyRegex = Pattern.compile(".*?\\$\\{(.*?)\\}.*?");
 
   private static List<String> scanProperties(String raw) {
@@ -28,8 +26,8 @@ public class MmProperties {
 
   private static String dereferenceKey(String keyRef, MmVarContext ctx) {
     Object rawVal = ctx.get(keyRef);
-    String propVal = rawVal == null ? "???" : rawVal.toString();
-    if (propVal.contains("${")) { return dereference(propVal, ctx); }
+    String propVal = rawVal == null ? null : rawVal.toString();
+    if (propVal != null && propVal.contains("${")) { return dereference(propVal, ctx); }
     return propVal;
   }
 
@@ -38,10 +36,11 @@ public class MmProperties {
     for (String keyRef : keyRefs) {
       String val = dereferenceKey(keyRef, ctx);
       if (val == null) {
-        log.warn("Unresolved property usage: [{}]", property);
+        log.warn("Unresolved expression: [{}]", property);
         property = property.replace(toPropFmt(keyRef), format("${%s = ???}", keyRef));
+      } else {
+        property = property.replace(toPropFmt(keyRef), val);
       }
-      property = property.replace(toPropFmt(keyRef), val);
     }
     return property;
   }
@@ -80,7 +79,7 @@ public class MmProperties {
     }
     if (log.isTraceEnabled()) {
       try {
-        log.trace(om.writerWithDefaultPrettyPrinter().writeValueAsString(pom));
+        log.trace(MmJsonLog.jsonLogOf(pom));
       } catch (Exception e) {
         throw new IllegalStateException(e);
       }

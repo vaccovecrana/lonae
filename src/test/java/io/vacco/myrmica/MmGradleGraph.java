@@ -17,17 +17,17 @@ public class MmGradleGraph {
       artId = artId.split("->")[0].trim();
     }
     String nodeId = String.format("%s:%s", groupId, artId);
-    return new OxVtx<>(nodeId, coordsStr).withLabel(artId);
+    return new OxVtx<>(nodeId, coordsStr).withLabel(nodeId);
   }
 
-  public static void processDeps(OxGrph<String, String> g, OxVtx<String, String> root, String data) {
+  public static void processDeps(OxGrph<String, String> g, List<String> depLines) {
     try {
-      List<String[]> deps = Arrays.stream(data.split("\n"))
+      List<String[]> deps = depLines.stream()
           .map(s -> s.split(depRegex))
           .filter(sArr -> sArr.length > 1)
           .collect(Collectors.toList());
       Map<Integer, OxVtx<String, String>> lParents = new HashMap<>();
-      lParents.put(1, root);
+
       for (String[] curr : deps) {
         OxVtx<String, String> cv = fromRaw(curr);
         lParents.put(curr.length, cv);
@@ -41,14 +41,9 @@ public class MmGradleGraph {
     }
   }
 
-  public static OxGrph<String, String> parse(String ... gradleDepSources) {
+  public static OxGrph<String, String> process(List<String> depLines) {
     OxGrph<String, String> g = new OxGrph<>();
-    String rootLabel = UUID.randomUUID().toString();
-    String rootId = String.format("io.gopher.root:%s", rootLabel);
-
-    for (String s : gradleDepSources) {
-      processDeps(g, new OxVtx<>(rootId, rootId).withLabel(rootLabel), s);
-    }
+    processDeps(g, depLines);
     return g;
   }
 

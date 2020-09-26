@@ -2,6 +2,7 @@ package io.vacco.myrmica.maven.xform;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.vacco.myrmica.maven.impl.MmJsonLog;
 import io.vacco.myrmica.maven.schema.*;
 import org.joox.Match;
 import org.slf4j.*;
@@ -29,8 +30,6 @@ public class MmXform {
       dependencyManagement = "dependencyManagement", dependencies = "dependencies",
       properties = "properties";
 
-  public static String components = "components";
-
   public static MmPom forPom(URL src) {
     try {
       Match x = $(src);
@@ -51,7 +50,7 @@ public class MmXform {
               ofNodeList(depList, exList -> ofNodeList(exList, null)))
       );
       if (log.isTraceEnabled()) {
-        log.trace(om.writerWithDefaultPrettyPrinter().writeValueAsString(pom));
+        log.trace(MmJsonLog.jsonLogOf(pom));
       }
       return om.convertValue(pom, MmPom.class);
     } catch (Exception e) {
