@@ -2,7 +2,6 @@ package io.vacco.myrmica.maven.schema;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.vacco.myrmica.maven.impl.MmArtifactDeserializer;
-
 import static java.lang.String.*;
 
 @JsonDeserialize(using = MmArtifactDeserializer.class)
@@ -11,6 +10,7 @@ public class MmArtifact implements Comparable<MmArtifact> {
   public MmCoordinates at;
   public MmComponent comp;
   public MmArtifactMeta meta;
+  private MmArtifact upstream;
 
   public String baseArtifactName() {
     return format("%s-%s%s.%s",
@@ -20,11 +20,27 @@ public class MmArtifact implements Comparable<MmArtifact> {
     );
   }
 
+  public boolean excludes(MmArtifact a) {
+    MmArtifact c = this;
+    boolean excluded = false;
+    while (c != null) {
+      excluded = meta.exclusions.stream().anyMatch(e -> e.artifactFormat().equals(a.at.artifactFormat()));
+      if (excluded) { break; }
+      else { c = c.upstream; }
+    }
+    return excluded;
+  }
+
   public boolean inRuntime() {
     boolean notRt = meta.optional
         || meta.scopeType == MmArtifactMeta.Scope.Test
         || meta.scopeType == MmArtifactMeta.Scope.Provided;
     return !notRt;
+  }
+
+  public MmArtifact withUpstream(MmArtifact up) {
+    this.upstream = up;
+    return this;
   }
 
   @Override public int compareTo(MmArtifact o) { return baseArtifactName().compareTo(o.baseArtifactName()); }

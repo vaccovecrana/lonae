@@ -33,18 +33,4 @@ public class MmComponent {
         format(", incDep: %s", includesDependencies)
     );
   }
-
-  @Override public boolean equals(Object o) {
-    if (o instanceof MmComponent) {
-      MmComponent oc = (MmComponent) o;
-      boolean te = type.equals(oc.type);
-      boolean pe = packaging.equals(oc.packaging);
-      boolean ce = classifier != null && classifier.equals(oc.classifier);
-      boolean le = language != null && language.equals(oc.language);
-      boolean ae = addedToClasspath == oc.addedToClasspath;
-      boolean ie = includesDependencies == oc.includesDependencies;
-      return te & pe & ce & le & ae & ie;
-    }
-    return false;
-  }
 }

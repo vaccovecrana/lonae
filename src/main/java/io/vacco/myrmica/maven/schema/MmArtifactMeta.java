@@ -13,7 +13,4 @@ public class MmArtifactMeta {
   public Scope scopeType;
   public final Set<MmCoordinates> exclusions = new TreeSet<>();
 
-  public boolean excludes(MmArtifact a) {
-    return exclusions.stream().anyMatch(e -> e.artifactFormat().equals(a.at.artifactFormat()));
-  }
 }

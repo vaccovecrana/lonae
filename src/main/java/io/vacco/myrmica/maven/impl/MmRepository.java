@@ -130,7 +130,7 @@ public class MmRepository {
       Optional<MmPom> ePom = new MmPatchLeft().onMultiple(pomsRev);
       if (!ePom.isPresent()) { throw new IllegalStateException("Unable to merge POM hierarchy " + poms); }
       if (log.isDebugEnabled()) {
-        MmJsonLog.jsonLogOf(ePom.get());
+        log.debug(MmJsonLog.jsonLogOf(ePom.get()));
       }
 
       MmPom pom = ePom.get();
@@ -153,21 +153,19 @@ public class MmRepository {
     return new OxVtx<>(c.artifactFormat(), computePom(c));
   }
 
-  private void buildGraphTail(MmCoordinates c, Set<MmCoordinates> parentExclusions, OxGrph<String, MmPom> g) {
+  private void buildGraphTail(MmCoordinates c, MmArtifact up, OxGrph<String, MmPom> g) {
     OxVtx<String, MmPom> vtx = asVtx(c);
     if (g.vtx.contains(vtx)) { return; }
     g.vtx.add(vtx);
 
     Set<MmArtifact> rtArts = vtx.data.dependencies.stream()
+        .map(art -> art.withUpstream(up))
         .filter(MmArtifact::inRuntime)
-        .filter(art -> parentExclusions.stream().noneMatch(crd -> crd.artifactFormat().equals(art.at.artifactFormat())))
+        .filter(art -> up == null || !up.excludes(art))
         .collect(toSet());
 
     for (MmArtifact ra : rtArts) {
-      Set<MmCoordinates> raEx = new HashSet<>(ra.meta.exclusions);
-      raEx.addAll(parentExclusions);
-      buildGraphTail(ra.at, raEx, g);
-
+      buildGraphTail(ra.at, ra, g);
       String artId = ra.at.artifactFormat();
       Optional<OxVtx<String, MmPom>> rtPom = g.vtx.stream().filter(v0 -> v0.id.equals(artId)).findFirst();
 
@@ -179,13 +177,12 @@ public class MmRepository {
           rtPom.get().data.extraVersions.add(ra);
         }
       }
-
     }
   }
 
   public OxGrph<String, MmPom> buildPomGraph(MmCoordinates c) {
     OxGrph<String, MmPom> graph = new OxGrph<>();
-    buildGraphTail(c, new HashSet<>(), graph);
+    buildGraphTail(c, null, graph);
     return graph;
   }
 
