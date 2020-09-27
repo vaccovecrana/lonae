@@ -36,7 +36,9 @@ public class MmProperties {
     for (String keyRef : keyRefs) {
       String val = dereferenceKey(keyRef, ctx);
       if (val == null) {
-        log.warn("Unresolved expression: [{}]", property);
+        if (log.isDebugEnabled()) {
+          log.debug("Unresolved expression: [{}]", property);
+        }
         property = property.replace(toPropFmt(keyRef), format("${%s = ???}", keyRef));
       } else {
         property = property.replace(toPropFmt(keyRef), val);
@@ -59,6 +61,8 @@ public class MmProperties {
     if (art.meta.scope != null) {
       art.meta.scope = toPCase(dereference(art.meta.scope, ctx));
       art.meta.scopeType = MmArtifactMeta.Scope.valueOf(art.meta.scope);
+    } else {
+      art.meta.scopeType = MmArtifactMeta.Scope.Compile;
     }
     dereference(art.at, ctx);
     for (MmCoordinates ex : art.meta.exclusions) {

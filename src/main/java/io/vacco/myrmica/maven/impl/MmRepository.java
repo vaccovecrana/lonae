@@ -127,22 +127,22 @@ public class MmRepository {
         depCtx.push();
       });
 
-      Optional<MmPom> ePom = new MmPatchLeft().onMultiple(pomsRev);
-      if (!ePom.isPresent()) { throw new IllegalStateException("Unable to merge POM hierarchy " + poms); }
-      if (log.isDebugEnabled()) {
-        log.debug(MmJsonLog.jsonLogOf(ePom.get()));
-      }
+      MmPom pom = poms.get(0);
 
-      MmPom pom = ePom.get();
       for (MmArtifact dep : pom.dependencies) {
         if (dep.at.version == null) {
           MmArtifact mDep = (MmArtifact) depCtx.get(dep.at.artifactFormat());
-          dep.at = mDep.at;
+          dep.at.version = mDep.at.version;
         }
         if (dep.meta.scopeType == MmArtifactMeta.Scope.Import) {
           log.warn("Unresolved dependency with import scope in <dependencies> section: {}", dep.toString());
         }
       }
+
+      if (log.isDebugEnabled()) {
+        log.debug(MmJsonLog.jsonLogOf(pom));
+      }
+
       return pom;
     } catch (Exception e) {
       throw new MmException.MmPomResolutionException(c, e);
@@ -153,18 +153,40 @@ public class MmRepository {
     return new OxVtx<>(c.artifactFormat(), computePom(c));
   }
 
-  private void buildGraphTail(MmCoordinates c, MmArtifact up, OxGrph<String, MmPom> g) {
+  private boolean upstreamExcludes(MmArtifact art) {
+    MmArtifact c = art.upstream;
+    while (c != null) {
+      Set<String> xIds = c.meta.exclusionIds();
+      for (String x : xIds) {
+        if (x.contains(art.at.groupId) && x.contains("*")) {
+          return false;
+        } else if (xIds.contains(art.at.artifactFormat())) {
+          return false;
+        }
+      }
+      c = c.upstream;
+    }
+    return true;
+  }
+
+  private Set<MmArtifact> runtimeDependencies(MmPom pom, MmArtifact upstream) {
+    List<MmArtifact> rta = pom.dependencies.stream()
+        .filter(MmArtifact::inRuntimeClasspath)
+        .map(art -> art.withUpstream(upstream)).collect(toList());
+    List<MmArtifact> rtaX = rta.stream().filter(this::upstreamExcludes).collect(toList());
+    return rtaX.stream().collect(toSet());
+  }
+
+  private void buildGraphTail(MmCoordinates c, MmArtifact upstream, OxGrph<String, MmPom> g) {
+
     OxVtx<String, MmPom> vtx = asVtx(c);
     if (g.vtx.contains(vtx)) { return; }
     g.vtx.add(vtx);
 
-    Set<MmArtifact> rtArts = vtx.data.dependencies.stream()
-        .map(art -> art.withUpstream(up))
-        .filter(MmArtifact::inRuntime)
-        .filter(art -> up == null || !up.excludes(art))
-        .collect(toSet());
+    MmPom pom = vtx.data;
+    Set<MmArtifact> rtDeps = runtimeDependencies(pom, upstream);
 
-    for (MmArtifact ra : rtArts) {
+    for (MmArtifact ra : rtDeps) {
       buildGraphTail(ra.at, ra, g);
       String artId = ra.at.artifactFormat();
       Optional<OxVtx<String, MmPom>> rtPom = g.vtx.stream().filter(v0 -> v0.id.equals(artId)).findFirst();

@@ -1,0 +1,18 @@
+runtimeClasspath - Runtime classpath of source set 'main'.
+\--- com.sun.jersey:jersey-json:1.9
+     +--- org.codehaus.jettison:jettison:1.1
+     |    \--- stax:stax-api:1.0.1
+     +--- com.sun.xml.bind:jaxb-impl:2.2.3-1
+     |    \--- javax.xml.bind:jaxb-api:2.2.2
+     |         +--- javax.xml.stream:stax-api:1.0-2
+     |         \--- javax.activation:activation:1.1
+     +--- org.codehaus.jackson:jackson-core-asl:1.8.3
+     +--- org.codehaus.jackson:jackson-mapper-asl:1.8.3
+     |    \--- org.codehaus.jackson:jackson-core-asl:1.8.3
+     +--- org.codehaus.jackson:jackson-jaxrs:1.8.3
+     |    +--- org.codehaus.jackson:jackson-core-asl:1.8.3
+     |    \--- org.codehaus.jackson:jackson-mapper-asl:1.8.3 (*)
+     +--- org.codehaus.jackson:jackson-xc:1.8.3
+     |    +--- org.codehaus.jackson:jackson-core-asl:1.8.3
+     |    \--- org.codehaus.jackson:jackson-mapper-asl:1.8.3 (*)
+     \--- com.sun.jersey:jersey-core:1.9

@@ -10,7 +10,8 @@ public class MmArtifact implements Comparable<MmArtifact> {
   public MmCoordinates at;
   public MmComponent comp;
   public MmArtifactMeta meta;
-  private MmArtifact upstream;
+
+  public MmArtifact upstream;
 
   public String baseArtifactName() {
     return format("%s-%s%s.%s",
@@ -20,26 +21,15 @@ public class MmArtifact implements Comparable<MmArtifact> {
     );
   }
 
-  public boolean excludes(MmArtifact a) {
-    MmArtifact c = this;
-    boolean excluded = false;
-    while (c != null) {
-      excluded = meta.exclusions.stream().anyMatch(e -> e.artifactFormat().equals(a.at.artifactFormat()));
-      if (excluded) { break; }
-      else { c = c.upstream; }
-    }
-    return excluded;
+  public boolean inRuntimeClasspath() {
+    if (meta.optional) return false;
+    if (meta.scopeType == MmArtifactMeta.Scope.Test) return false;
+    if (meta.scopeType == MmArtifactMeta.Scope.Provided) return false;
+    return true;
   }
 
-  public boolean inRuntime() {
-    boolean notRt = meta.optional
-        || meta.scopeType == MmArtifactMeta.Scope.Test
-        || meta.scopeType == MmArtifactMeta.Scope.Provided;
-    return !notRt;
-  }
-
-  public MmArtifact withUpstream(MmArtifact up) {
-    this.upstream = up;
+  public MmArtifact withUpstream(MmArtifact upstream) {
+    this.upstream = upstream;
     return this;
   }
 
@@ -50,6 +40,6 @@ public class MmArtifact implements Comparable<MmArtifact> {
   }
 
   @Override public String toString() {
-    return String.format("%s %s", at, comp);
+    return String.format("%s %s", at, meta);
   }
 }

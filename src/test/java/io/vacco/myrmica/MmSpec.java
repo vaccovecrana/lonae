@@ -56,20 +56,29 @@ public class MmSpec {
   };
 
   public static final String[] comparisonCoords = new String [] {
+      "com.sun.jersey:jersey-json:1.9",
+      "org.apache.zookeeper:zookeeper:3.4.6",
+      "org.apache.hadoop:hadoop-auth:2.6.5",
+      "org.apache.hadoop:hadoop-common:2.6.5",
+      "org.apache.hadoop:hadoop-mapreduce-client-shuffle:2.6.5",
+      "org.apache.hadoop:hadoop-client:2.6.5",
+      "org.apache.avro:avro:1.8.2",
       "org.apache.spark:spark-core_2.12:2.4.0",
+
       "org.deeplearning4j:deeplearning4j-core:1.0.0-beta3",
+
       "org.springframework.boot:spring-boot-starter-web:2.3.4.RELEASE"
   };
 
   static {
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_DEVMODE, "true");
-    ShOption.setSysProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, "false");
+    ShOption.setSysProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, "true");
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, "info");
 
     final Logger log = LoggerFactory.getLogger(MmSpec.class);
     final MmRepository repo = new MmRepository("/tmp/repo", "https://repo1.maven.org/maven2/");
 
-    it("Can compare resolved dependecy graphs against Gradle references", () -> {
+    it("Can compare resolved dependency graphs against Gradle references", () -> {
       for (String cc : comparisonCoords) {
         String gradleFile = format("%s.deps", cc.replace(":", "^"));
         List<String> lines =  Files.readAllLines(Paths.get("./src/test/resources", gradleFile));
@@ -95,6 +104,8 @@ public class MmSpec {
         }
         log.info("--------------------------------------------------");
         log.info("hit: {}, miss: {}, slack: {}", hit, miss, slack);
+        log.info("--------------------------------------------------");
+        log.info(OxTgf.apply(mmGraph));
         log.info("==================================================\n");
       }
     });
@@ -112,6 +123,7 @@ public class MmSpec {
     describe(MmXform.class.getCanonicalName(), () -> {
       it("can load component definitions", () -> {
         Map<MmComponent.Type, MmComponent> components = MmXform.forComponents(MmSpec.class.getResource("/io/vacco/myrmica/maven/artifact-handlers.xml"));
+        components.forEach((k, v) -> log.info(v.toString()));
         log.info("{}", kv("comps", components));
       });
       it("can compute effective POM data", () -> {
@@ -126,5 +138,6 @@ public class MmSpec {
         });
       });
     });
+
   }
 }
