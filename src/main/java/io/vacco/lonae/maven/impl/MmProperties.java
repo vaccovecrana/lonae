@@ -1,6 +1,6 @@
-package io.vacco.myrmica.maven.impl;
+package io.vacco.lonae.maven.impl;
 
-import io.vacco.myrmica.maven.schema.*;
+import io.vacco.lonae.maven.schema.*;
 import org.slf4j.*;
 import java.util.*;
 import java.util.regex.*;

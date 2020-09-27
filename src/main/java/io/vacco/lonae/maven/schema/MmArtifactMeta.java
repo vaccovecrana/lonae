@@ -1,4 +1,4 @@
-package io.vacco.myrmica.maven.schema;
+package io.vacco.lonae.maven.schema;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.*;

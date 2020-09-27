@@ -1,8 +1,11 @@
-package io.vacco.myrmica;
+package io.vacco.lonae;
 
-import io.vacco.myrmica.maven.impl.MmRepository;
-import io.vacco.myrmica.maven.schema.*;
-import io.vacco.myrmica.maven.xform.*;
+import io.vacco.lonae.maven.impl.MmRepository;
+import io.vacco.lonae.maven.schema.MmComponent;
+import io.vacco.lonae.maven.schema.MmCoordinates;
+import io.vacco.lonae.maven.schema.MmPom;
+import io.vacco.lonae.maven.schema.MmResolutionResult;
+import io.vacco.lonae.maven.xform.MmXform;
 import io.vacco.oriax.core.*;
 import io.vacco.oriax.util.OxTgf;
 import io.vacco.shax.logging.ShOption;
@@ -110,7 +113,7 @@ public class MmSpec {
 
     describe(MmXform.class.getCanonicalName(), () -> {
       it("can load component definitions", () -> {
-        Map<MmComponent.Type, MmComponent> components = MmXform.forComponents(MmSpec.class.getResource("/io/vacco/myrmica/maven/artifact-handlers.xml"));
+        Map<MmComponent.Type, MmComponent> components = MmXform.forComponents(MmSpec.class.getResource("/io/vacco/lonae/maven/artifact-handlers.xml"));
         components.forEach((k, v) -> log.info(v.toString()));
         log.info("{}", kv("comps", components));
       });

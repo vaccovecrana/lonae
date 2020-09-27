@@ -1,4 +1,4 @@
-package io.vacco.myrmica.maven.impl;
+package io.vacco.lonae.maven.impl;
 
 import java.util.*;
 

@@ -1,9 +1,9 @@
-package io.vacco.myrmica.maven.impl;
+package io.vacco.lonae.maven.impl;
 
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import io.vacco.myrmica.maven.schema.*;
+import io.vacco.lonae.maven.schema.*;
 
 import java.io.IOException;
 

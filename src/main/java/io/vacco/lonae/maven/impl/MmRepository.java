@@ -1,7 +1,7 @@
-package io.vacco.myrmica.maven.impl;
+package io.vacco.lonae.maven.impl;
 
-import io.vacco.myrmica.maven.schema.*;
-import io.vacco.myrmica.maven.xform.*;
+import io.vacco.lonae.maven.schema.*;
+import io.vacco.lonae.maven.xform.MmXform;
 import io.vacco.oriax.core.*;
 import org.slf4j.*;
 
@@ -12,13 +12,13 @@ import java.util.*;
 
 import static java.util.Objects.*;
 import static java.lang.String.*;
-import static io.vacco.myrmica.maven.impl.MmProperties.*;
+import static io.vacco.lonae.maven.impl.MmProperties.*;
 import static java.util.stream.Collectors.*;
 
 public class MmRepository {
 
   private static final Logger log = LoggerFactory.getLogger(MmRepository.class);
-  private static final URL compXml = MmRepository.class.getResource("/io/vacco/myrmica/maven/artifact-handlers.xml");
+  private static final URL compXml = MmRepository.class.getResource("/io/vacco/lonae/maven/artifact-handlers.xml");
 
   public static final Map<MmComponent.Type, MmComponent> defaultComps = MmXform.forComponents(compXml);
 

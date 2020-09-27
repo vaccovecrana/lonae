@@ -1,6 +1,6 @@
-package io.vacco.myrmica.maven.impl;
+package io.vacco.lonae.maven.impl;
 
-import io.vacco.myrmica.maven.schema.MmCoordinates;
+import io.vacco.lonae.maven.schema.MmCoordinates;
 
 public class MmException {
 

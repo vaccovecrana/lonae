@@ -2,8 +2,8 @@ plugins {
   id("io.vacco.common-build") version "0.5.1"
 }
 
-group = "io.vacco.myrmica"
-version = "0.8.0"
+group = "io.vacco.lonae"
+version = "0.9.5"
 
 configure<io.vacco.common.CbPluginProfileExtension> {
   addJ8Spec(); addPmd(); addSpotBugs(); addClasspathHell()

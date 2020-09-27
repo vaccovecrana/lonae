@@ -1,7 +1,8 @@
-package io.vacco.myrmica.maven.schema;
+package io.vacco.lonae.maven.schema;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.vacco.myrmica.maven.impl.MmArtifactDeserializer;
+import io.vacco.lonae.maven.impl.MmArtifactDeserializer;
+
 import static java.lang.String.*;
 
 @JsonDeserialize(using = MmArtifactDeserializer.class)

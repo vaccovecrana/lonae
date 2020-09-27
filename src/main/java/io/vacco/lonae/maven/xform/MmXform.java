@@ -1,9 +1,8 @@
-package io.vacco.myrmica.maven.xform;
+package io.vacco.lonae.maven.xform;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.vacco.myrmica.maven.impl.MmJsonLog;
-import io.vacco.myrmica.maven.schema.*;
+import com.fasterxml.jackson.databind.*;
+import io.vacco.lonae.maven.impl.MmJsonLog;
+import io.vacco.lonae.maven.schema.*;
 import org.joox.Match;
 import org.slf4j.*;
 
@@ -11,7 +10,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
 
-import static io.vacco.myrmica.maven.xform.MmXmlUtil.*;
+import static io.vacco.lonae.maven.xform.MmXmlUtil.*;
 import static java.util.stream.Collectors.*;
 import static org.joox.JOOX.*;
 
