@@ -26,7 +26,7 @@ selections based on a set of Maven coordinates that you provide.
 
 Add the following dependency from JCenter to your project:
 
-    implementation "io.vacco.myrmica:lonae:0.8.0"
+    implementation "io.vacco.myrmica:lonae:<VERSION>"
 
 ### Usage
 
