@@ -58,8 +58,8 @@ public class MmSpec {
 
   static {
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_DEVMODE, "true");
-    ShOption.setSysProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, "true");
-    ShOption.setSysProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, "info");
+    ShOption.setSysProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, "false");
+    ShOption.setSysProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, "trace");
 
     final Logger log = LoggerFactory.getLogger(MmSpec.class);
     final MmRepository repo = new MmRepository("/tmp/repo", "https://repo1.maven.org/maven2/");
@@ -97,8 +97,11 @@ public class MmSpec {
     });
 
     it("Can install resolved artifacts", () -> {
-      List<MmResolutionResult> paths = repo.installFrom(MmCoordinates.from("org.apache.spark:spark-core_2.12:2.4.0"), "sources");
-      log.info("{}", kv("paths", paths));
+      List<MmResolutionResult> jars = repo.installDefaultFrom(MmCoordinates.from("org.apache.spark:spark-core_2.12:2.4.0"));
+      log.info("{}", kv("jars", jars));
+      List<MmResolutionResult> sources = repo.installFrom(MmCoordinates.from("org.apache.spark:spark-core_2.12:2.4.0"), "sources");
+      log.info("{}", kv("sources", sources));
+      // sources.forEach(src -> log.info(src.toString()));
     });
 
     describe(MmXform.class.getCanonicalName(), () -> {
@@ -108,9 +111,7 @@ public class MmSpec {
         log.info("{}", kv("comps", components));
       });
       it("can compute effective POM data", () -> {
-        Arrays.stream(validationCoords).map(MmCoordinates::from).forEach(coord -> {
-          MmPom o = repo.computePom(coord);
-        });
+        Arrays.stream(validationCoords).map(MmCoordinates::from).forEach(repo::computePom);
       });
       it("can render POM dependency graphs", () -> {
         Arrays.stream(validationCoords).map(MmCoordinates::from).forEach(coord -> {

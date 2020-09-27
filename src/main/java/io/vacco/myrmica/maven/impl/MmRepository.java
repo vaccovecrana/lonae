@@ -214,7 +214,7 @@ public class MmRepository {
     return graph;
   }
 
-  public List<MmResolutionResult> installFrom(MmCoordinates root, String classifier) {
+  public List<MmResolutionResult> installFrom(MmCoordinates root, String ... classifiers) {
     List<MmResolutionResult> out = new ArrayList<>();
     for (OxVtx<String, MmPom> vtx : buildPomGraph(root).vtx) {
       MmPom pom = vtx.data;
@@ -224,13 +224,19 @@ public class MmRepository {
         allArts.add(jar);
         jar = allArts.iterator().next();
       }
-      jar.comp.classifier = classifier;
-      try {
-        out.add(MmResolutionResult.of(jar, resolveOrFetch(resourcePathOf(jar)), null));
-      } catch (Exception e) {
-        out.add(MmResolutionResult.of(jar, null, e));
+      for (String classifier : classifiers) {
+        try {
+          jar.comp.classifier = classifier;
+          out.add(MmResolutionResult.of(jar, resolveOrFetch(resourcePathOf(jar)), null));
+        } catch (Exception e) {
+          out.add(MmResolutionResult.of(jar, null, e));
+        }
       }
     }
     return out;
+  }
+
+  public List<MmResolutionResult> installDefaultFrom(MmCoordinates root) {
+    return installFrom(root, "");
   }
 }

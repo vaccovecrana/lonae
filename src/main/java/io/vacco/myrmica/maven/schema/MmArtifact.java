@@ -16,7 +16,7 @@ public class MmArtifact implements Comparable<MmArtifact> {
   public String baseArtifactName() {
     return format("%s-%s%s.%s",
         at != null ? at.artifactId : "", at != null ? at.version : "",
-        comp != null && comp.classifier != null ? format("-%s", comp.classifier) : "",
+        comp != null && comp.classifier != null && comp.classifier.length() > 0 ? format("-%s", comp.classifier) : "",
         comp != null ? comp.type : ""
     );
   }
