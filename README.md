@@ -22,7 +22,11 @@ selections based on a set of Maven coordinates that you provide.
 
 ### Installation
 
-`TODO` - Maven artifacts coming to JCenter and Maven Central soon.
+[ ![Download](https://api.bintray.com/packages/vaccovecrana/vacco-oss/lonae/images/download.svg) ](https://bintray.com/vaccovecrana/vacco-oss/lonae/_latestVersion)
+
+Add the following dependency from JCenter to your project:
+
+    implementation "io.vacco.myrmica:lonae:0.8.0"
 
 ### Usage
 
