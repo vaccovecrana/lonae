@@ -214,8 +214,8 @@ public class MmRepository {
     return graph;
   }
 
-  public Map<MmCoordinates, Path> installFrom(MmCoordinates root) {
-    Map<MmCoordinates, Path> idx = new TreeMap<>();
+  public List<MmResolutionResult> installFrom(MmCoordinates root, String classifier) {
+    List<MmResolutionResult> out = new ArrayList<>();
     for (OxVtx<String, MmPom> vtx : buildPomGraph(root).vtx) {
       MmPom pom = vtx.data;
       MmArtifact jar = artifactOf(pom.at, MmComponent.Type.jar); // Gradle's latest version wins strategy.
@@ -224,9 +224,13 @@ public class MmRepository {
         allArts.add(jar);
         jar = allArts.iterator().next();
       }
-      Path p = resolveOrFetch(resourcePathOf(jar));
-      idx.put(vtx.data.at, p);
+      jar.comp.classifier = classifier;
+      try {
+        out.add(MmResolutionResult.of(jar, resolveOrFetch(resourcePathOf(jar)), null));
+      } catch (Exception e) {
+        out.add(MmResolutionResult.of(jar, null, e));
+      }
     }
-    return idx;
+    return out;
   }
 }
