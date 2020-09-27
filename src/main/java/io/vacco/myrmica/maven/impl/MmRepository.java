@@ -25,7 +25,7 @@ public class MmRepository {
   public final Path localRoot;
   public final URI remoteRoot;
 
-  public MmRepository(String localRootPath, String remotePath) {
+  public MmRepository(String localRootPath, String remotePath) { // TODO add session ID here (for concurrent processing).
     try {
       this.localRoot = Paths.get(requireNonNull(localRootPath));
       if (!localRoot.toFile().exists()) {
@@ -50,30 +50,34 @@ public class MmRepository {
     );
   }
 
-  public Path pomPathOf(MmCoordinates coordinates) {
+  public Path resourcePathOf(MmCoordinates coordinates, MmComponent.Type type) {
     MmArtifact art = new MmArtifact();
     art.at = coordinates;
-    art.comp = defaultComps.get(MmComponent.Type.pom);
+    art.comp = defaultComps.get(type);
     return getResourcePath(coordinates).resolve(art.baseArtifactName());
+  }
+
+  private Path resolveOrFetch(Path resourcePath) {
+    try {
+      Path target = localRoot.resolve(resourcePath);
+      if (!target.toFile().getParentFile().exists()) { target.toFile().getParentFile().mkdirs(); }
+      if (!target.toFile().exists()) {
+        URI remoteRes = remoteRoot.resolve(resourcePath.toString());
+        log.info("Fetching [{}]", remoteRes);
+        Files.copy(remoteRes.toURL().openStream(), target);
+      } else if (log.isDebugEnabled()) { log.debug("Resolved [{}]", target); }
+      return target;
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   public MmPom loadPom(MmCoordinates c) {
     try {
-      Path pomPath = pomPathOf(c);
-      Path target = localRoot.resolve(pomPath);
-      if (!target.toFile().getParentFile().exists()) { target.toFile().getParentFile().mkdirs(); }
-      if (!target.toFile().exists()) {
-        URI remotePom = remoteRoot.resolve(pomPath.toString());
-        log.info("Fetching [{}]", remotePom);
-        Files.copy(remotePom.toURL().openStream(), target);
-      } else if (log.isDebugEnabled()) { log.debug("Resolving [{}]", target); }
-      MmPom pom = MmXform.forPom(target.toUri().toURL());
-      if (pom.at.groupId == null) {
-        pom.at.groupId = pom.parent.groupId;
-      }
-      if (pom.at.version == null) {
-        pom.at.version = pom.parent.version;
-      }
+      Path pomPath = resolveOrFetch(resourcePathOf(c, MmComponent.Type.pom));
+      MmPom pom = MmXform.forPom(pomPath.toUri().toURL());
+      if (pom.at.groupId == null) { pom.at.groupId = pom.parent.groupId; }
+      if (pom.at.version == null) { pom.at.version = pom.parent.version; }
       return pom;
     }
     catch (Exception e) {
@@ -173,12 +177,10 @@ public class MmRepository {
     List<MmArtifact> rta = pom.dependencies.stream()
         .filter(MmArtifact::inRuntimeClasspath)
         .map(art -> art.withUpstream(upstream)).collect(toList());
-    List<MmArtifact> rtaX = rta.stream().filter(this::upstreamExcludes).collect(toList());
-    return rtaX.stream().collect(toSet());
+    return rta.stream().filter(this::upstreamExcludes).collect(toSet());
   }
 
   private void buildGraphTail(MmCoordinates c, MmArtifact upstream, OxGrph<String, MmPom> g) {
-
     OxVtx<String, MmPom> vtx = asVtx(c);
     if (g.vtx.contains(vtx)) { return; }
     g.vtx.add(vtx);
@@ -208,37 +210,12 @@ public class MmRepository {
     return graph;
   }
 
-  /*
-  private Path install(Artifact a) {
-    requireNonNull(a);
-    try {
-      Path target = a.getLocalPackagePath(localRoot);
-      if (!target.toFile().getParentFile().exists()) { target.toFile().getParentFile().mkdirs(); }
-      if (!target.toFile().exists()) {
-        URI remoteArtifact = a.getPackageUri(remoteRoot);
-        log.info("Downloading [{}]", remoteArtifact);
-        Files.copy(remoteArtifact.toURL().openStream(), target);
-      }
-      return target;
-    } catch (Exception e) {
-      String msg = String.format("Unable to install artifact [%s]", a);
-      throw new IllegalStateException(msg, e);
+  public Map<MmCoordinates, Path> installFrom(MmCoordinates root) {
+    Map<MmCoordinates, Path> idx = new TreeMap<>();
+    for (OxVtx<String, MmPom> vtx : buildPomGraph(root).vtx) {
+      Path p = resolveOrFetch(resourcePathOf(vtx.data.at, MmComponent.Type.jar));
+      idx.put(vtx.data.at, p);
     }
+    return idx;
   }
-
-  public ResolutionResult loadRuntimeArtifactsAt(Coordinates root) {
-    DependencyNode n0 = new DependencyNode(buildPom(root));
-    loadRtTail(n0);
-    return new ResolutionResult(n0);
-  }
-
-  public Map<Artifact, Path> installLoadedArtifacts(ResolutionResult r) {
-    return r.artifacts.parallelStream()
-        .collect(Collectors.toMap(Function.identity(), this::install));
-  }
-
-  public Map<Artifact, Path> installRuntimeArtifactsAt(Coordinates root) {
-    return new TreeMap<>(installLoadedArtifacts(loadRuntimeArtifactsAt(root)));
-  }
-*/
 }

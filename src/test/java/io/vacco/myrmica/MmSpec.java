@@ -16,24 +16,10 @@ import java.util.*;
 
 import static j8spec.J8Spec.*;
 import static io.vacco.shax.logging.ShArgument.*;
-import static org.junit.Assert.*;
 import static java.lang.String.*;
 
 @DefinedOrder @RunWith(J8SpecRunner.class)
 public class MmSpec {
-
-  public static class Flop {
-    public int foo;
-    public String meep;
-    public String[] cats;
-    public static Flop of(int foo, String meep, String ... cats) {
-      Flop f = new Flop();
-      f.foo = foo;
-      f.meep = meep;
-      f.cats = cats;
-      return f;
-    }
-  }
 
   public static final String[] testCoords = new String[] {
       "jackson-databind:2.11.2", "org.springframework.boot:spring-boot-starter-web:2.3.4.RELEASE",
@@ -110,14 +96,9 @@ public class MmSpec {
       }
     });
 
-    it("Can merge objects from right to left", () -> {
-      Optional<Flop> f = new MmPatchLeft().onMultiple(
-          Flop.of(1, "meep", "fido", "garfield"),
-          Flop.of(2, "moop", "momo", "garfield"),
-          Flop.of(42, null, "felix")
-      );
-      assertTrue(f.isPresent());
-      log.info("{}", kv("merged", f.get()));
+    it("Can install resolved artifacts", () -> {
+      Map<MmCoordinates, Path> idx = repo.installFrom(MmCoordinates.from("org.apache.spark:spark-core_2.12:2.4.0"));
+      log.info("{}", kv("paths", idx));
     });
 
     describe(MmXform.class.getCanonicalName(), () -> {

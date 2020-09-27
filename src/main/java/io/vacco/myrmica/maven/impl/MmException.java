@@ -2,19 +2,7 @@ package io.vacco.myrmica.maven.impl;
 
 import io.vacco.myrmica.maven.schema.MmCoordinates;
 
-import java.net.URI;
-
 public class MmException {
-
-  public static class MmCoordinateResolutionException extends RuntimeException {
-    public final URI origin;
-    public final MmCoordinates coordinates;
-    public MmCoordinateResolutionException(URI origin, MmCoordinates coordinates, Exception e) {
-      super(e);
-      this.origin = origin;
-      this.coordinates = coordinates;
-    }
-  }
 
   public static class MmRepositoryInitializationException extends RuntimeException {
     public final String localRootPath;
