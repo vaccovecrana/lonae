@@ -50,11 +50,15 @@ public class MmRepository {
     );
   }
 
-  public Path resourcePathOf(MmCoordinates coordinates, MmComponent.Type type) {
+  public MmArtifact artifactOf(MmCoordinates coordinates, MmComponent.Type type) {
     MmArtifact art = new MmArtifact();
     art.at = coordinates;
     art.comp = defaultComps.get(type);
-    return getResourcePath(coordinates).resolve(art.baseArtifactName());
+    return art;
+  }
+
+  public Path resourcePathOf(MmArtifact art) {
+    return getResourcePath(art.at).resolve(art.baseArtifactName());
   }
 
   private Path resolveOrFetch(Path resourcePath) {
@@ -74,7 +78,7 @@ public class MmRepository {
 
   public MmPom loadPom(MmCoordinates c) {
     try {
-      Path pomPath = resolveOrFetch(resourcePathOf(c, MmComponent.Type.pom));
+      Path pomPath = resolveOrFetch(resourcePathOf(artifactOf(c, MmComponent.Type.pom)));
       MmPom pom = MmXform.forPom(pomPath.toUri().toURL());
       if (pom.at.groupId == null) { pom.at.groupId = pom.parent.groupId; }
       if (pom.at.version == null) { pom.at.version = pom.parent.version; }
@@ -213,7 +217,14 @@ public class MmRepository {
   public Map<MmCoordinates, Path> installFrom(MmCoordinates root) {
     Map<MmCoordinates, Path> idx = new TreeMap<>();
     for (OxVtx<String, MmPom> vtx : buildPomGraph(root).vtx) {
-      Path p = resolveOrFetch(resourcePathOf(vtx.data.at, MmComponent.Type.jar));
+      MmPom pom = vtx.data;
+      MmArtifact jar = artifactOf(pom.at, MmComponent.Type.jar); // Gradle's latest version wins strategy.
+      if (!pom.extraVersions.isEmpty()) {
+        Set<MmArtifact> allArts = new TreeSet<>(pom.extraVersions);
+        allArts.add(jar);
+        jar = allArts.iterator().next();
+      }
+      Path p = resolveOrFetch(resourcePathOf(jar));
       idx.put(vtx.data.at, p);
     }
     return idx;

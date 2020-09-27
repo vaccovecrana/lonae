@@ -33,7 +33,7 @@ public class MmArtifact implements Comparable<MmArtifact> {
     return this;
   }
 
-  @Override public int compareTo(MmArtifact o) { return baseArtifactName().compareTo(o.baseArtifactName()); }
+  @Override public int compareTo(MmArtifact o) { return o.baseArtifactName().compareTo(baseArtifactName()); }
   @Override public int hashCode() { return baseArtifactName().hashCode(); }
   @Override public boolean equals(Object o) {
     return o instanceof MmArtifact && ((MmArtifact) o).baseArtifactName().equals(baseArtifactName());
