@@ -1,20 +1,20 @@
-# myrmica
+# lonae
 
 A lightweight Maven dependency resolver.
 
 ## Overview
 
-[`myrmica`](https://en.wikipedia.org/wiki/Myrmica) allows you to resolve dependency graphs for Maven artifacts and
+[`lonae`](https://en.wikipedia.org/wiki/Myrmica_lonae) allows you to resolve runtime dependency graphs for Maven artifacts and
 repositories from within your client code.
 
 *Quick disclaimer*: To make the best use of your time (and mine):
 
 > This project, although functional, is still in an experimental stage. If you
 > are expecting to get artifacts resolved in the exact same way Maven
-> or Gradle would, then `myrmica` is not for you. At least not until solid
+> or Gradle would, then `lonae` is not for you. At least not until solid
 > support for runtime dependency semantic quirks is established/implemented.
 
-That said, `myrmica` will try to make a reasonable choice of run-time artifact
+That said, `lonae` will try to make a reasonable choice of run-time artifact
 selections based on a set of Maven coordinates that you provide.
 
 > NOTE: since "__reasonable__" has a very broad interpretation, please be sure
@@ -41,10 +41,8 @@ more specialized in execution scopes other than run-time. They also bring in
 additional frameworks and dependencies of which I have very little
 to no control of (as well as a deep understanding of, for better or worse).
 
-Again, the purpose of `myrmica` is completely focused on the runtime artifact
+Again, the purpose of `lonae` is completely focused on the runtime artifact
 retrieval for an application.
-
-So to save your time (and mine).
 
 ## What's supported
 
