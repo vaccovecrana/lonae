@@ -11,6 +11,7 @@ import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
 import org.slf4j.*;
 
+import java.io.File;
 import java.nio.file.*;
 import java.util.*;
 
@@ -61,6 +62,8 @@ public class MmSpec {
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, "false");
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, "trace");
 
+    boolean n =new File("/tmp", "repo").mkdirs();
+
     final Logger log = LoggerFactory.getLogger(MmSpec.class);
     final MmRepository repo = new MmRepository("/tmp/repo", "https://repo1.maven.org/maven2/");
 
@@ -99,9 +102,10 @@ public class MmSpec {
     it("Can install resolved artifacts", () -> {
       List<MmResolutionResult> jars = repo.installDefaultFrom(MmCoordinates.from("org.apache.spark:spark-core_2.12:2.4.0"));
       log.info("{}", kv("jars", jars));
+      jars.forEach(jar -> log.info(jar.toString()));
       List<MmResolutionResult> sources = repo.installFrom(MmCoordinates.from("org.apache.spark:spark-core_2.12:2.4.0"), "sources");
       log.info("{}", kv("sources", sources));
-      // sources.forEach(src -> log.info(src.toString()));
+      sources.forEach(src -> log.info(src.toString()));
     });
 
     describe(MmXform.class.getCanonicalName(), () -> {
@@ -111,10 +115,14 @@ public class MmSpec {
         log.info("{}", kv("comps", components));
       });
       it("can compute effective POM data", () -> {
-        Arrays.stream(validationCoords).map(MmCoordinates::from).forEach(repo::computePom);
+        Arrays.stream(validationCoords).map(MmCoordinates::from).forEach(coords -> {
+          MmPom pom = repo.computePom(coords);
+          log.info(pom.toString());
+        });
       });
       it("can render POM dependency graphs", () -> {
         Arrays.stream(validationCoords).map(MmCoordinates::from).forEach(coord -> {
+          log.info("---> {}", coord);
           OxGrph<String, MmPom> g = repo.buildPomGraph(coord);
           log.info(OxTgf.apply(g));
         });
