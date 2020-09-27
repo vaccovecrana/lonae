@@ -27,41 +27,39 @@ selections based on a set of Maven coordinates that you provide.
 ### Usage
 
 ```$java
-String M2 = "https://repo.maven.apache.org/maven2/";
-String localRepo = "/tmp/repo/";
-Repository repo = new Repository(localRepo, M2);
+MmRepository repo = new MmRepository("/tmp/repo", "https://repo1.maven.org/maven2/");
 
-Coordinates arrowJdbc = new Coordinates("org.apache.arrow", "arrow-jdbc", "0.12.0");
-Map<Artifact, Path> binaries = repo.installRuntimeArtifactsAt(arrowJdbc);
+List<MmResolutionResult> jars = repo.installDefaultFrom(MmCoordinates.from("org.apache.arrow:arrow-jdbc:0.12.0"));
+List<MmResolutionResult> sources = repo.installFrom(MmCoordinates.from("org.apache.arrow:arrow-jdbc:0.12.0"), "sources");
 ```
 
 ## Motivation
 
 So far, I have yet to find a minimalistic library which supports M2 artifact
 resolution semantics. The libraries mentioned at the end of this document are
-more specialized in execution scopes other than run-time. In addition, they tend
-to bring in additional frameworks and dependencies of which I have very little
+more specialized in execution scopes other than run-time. They also bring in
+additional frameworks and dependencies of which I have very little
 to no control of (as well as a deep understanding of, for better or worse).
 
-Again, the purpose of `myrmica` is completely focused on the runtime execution
-environment of an application.
+Again, the purpose of `myrmica` is completely focused on the runtime artifact
+retrieval for an application.
+
+So to save your time (and mine).
 
 ## What's supported
 
-- Maven style runtime dependency detection and installation into a local repository.
-- `import` scoped `pom` dependencies (to support multiple inheritance.
-- Gradle's __latest version wins__ default conflict resolution strategy.
+- [x] Maven style runtime dependency detection and installation (with optional classifiers) into a local repository.
+- [x] `import` scoped `pom` dependencies (to support multiple inheritance.
+- [x] Gradle's __latest version wins__ default conflict resolution strategy.
 
-## What's not supported
+## What's left to do (Pull Requests welcomed and encouraged).
 
-- Profile activations.
-- Wildcard dependency exclusions.
-- Version range selectors.
-- `LATEST` version selector.
-- Maven deployment metadata for `SNAPSHOT` artifacts.
-- Artifact MD5/SHA checksum verification on downloaded artifacts.
-
-Any Pull Requests to improve upon these points are more than welcome :).
+- [ ] Maven's __closest version wins__ default conflict resolution strategy.
+- [ ] Adding dependencies from default active profile.
+- [ ] Version range selectors.
+- [ ] `LATEST` version selector.
+- [ ] Maven deployment metadata for `SNAPSHOT` artifacts.
+- [ ] Artifact MD5/SHA checksum verification on downloaded artifacts.
 
 A few recommendations:
 
