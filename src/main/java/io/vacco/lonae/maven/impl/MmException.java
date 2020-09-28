@@ -5,12 +5,12 @@ import io.vacco.lonae.maven.schema.MmCoordinates;
 public class MmException {
 
   public static class MmRepositoryInitializationException extends RuntimeException {
-    public final String localRootPath;
-    public final String remotePath;
-    public MmRepositoryInitializationException(String localRootPath, String remotePath, Exception e) {
+    public final String   localRootPath;
+    public final String[] remotePaths;
+    public MmRepositoryInitializationException(String localRootPath, String[] remotePaths, Exception e) {
       super(e);
       this.localRootPath = localRootPath;
-      this.remotePath = remotePath;
+      this.remotePaths = remotePaths;
     }
   }
 

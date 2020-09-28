@@ -23,9 +23,9 @@ public class MmRepository {
   public static final Map<MmComponent.Type, MmComponent> defaultComps = MmXform.forComponents(compXml);
 
   public final Path localRoot;
-  public final URI remoteRoot;
+  public final Set<URI> remoteRoots = new LinkedHashSet<>();
 
-  public MmRepository(String localRootPath, String remotePath) { // TODO add session ID here (for concurrent processing).
+  public MmRepository(String localRootPath, String ... remotePaths) {
     try {
       this.localRoot = Paths.get(requireNonNull(localRootPath));
       if (!localRoot.toFile().exists()) {
@@ -34,12 +34,14 @@ public class MmRepository {
       if (!localRoot.toFile().isDirectory()) {
         throw new IllegalArgumentException(format("Not a directory: [%s]", localRoot.toAbsolutePath().toString()));
       }
-      if (!requireNonNull(remotePath).endsWith("/")) {
-        throw new IllegalArgumentException(String.format("Remote path does not end with a trailing slash: [%s]", remotePath));
+      for (String remotePath : remotePaths) {
+        if (!requireNonNull(remotePath).endsWith("/")) {
+          throw new IllegalArgumentException(String.format("Remote path does not end with a trailing slash: [%s]", remotePath));
+        }
+        this.remoteRoots.add(new URI(remotePath));
       }
-      this.remoteRoot = new URI(remotePath);
     } catch (Exception e) {
-      throw new MmException.MmRepositoryInitializationException(localRootPath, remotePath, e);
+      throw new MmException.MmRepositoryInitializationException(localRootPath, remotePaths, e);
     }
   }
 
@@ -62,18 +64,27 @@ public class MmRepository {
   }
 
   private Path resolveOrFetch(Path resourcePath) {
-    try {
-      Path target = localRoot.resolve(resourcePath);
-      if (!target.toFile().getParentFile().exists()) { target.toFile().getParentFile().mkdirs(); }
-      if (!target.toFile().exists()) {
+    Path target = localRoot.resolve(resourcePath);
+    if (!target.toFile().getParentFile().exists()) { target.toFile().getParentFile().mkdirs(); }
+    if (!target.toFile().exists()) {
+      for (URI remoteRoot : remoteRoots) {
         URI remoteRes = remoteRoot.resolve(resourcePath.toString());
-        log.info("Fetching [{}]", remoteRes);
-        Files.copy(remoteRes.toURL().openStream(), target);
-      } else if (log.isDebugEnabled()) { log.debug("Resolved [{}]", target); }
-      return target;
-    } catch (Exception e) {
-      throw new IllegalStateException(e);
-    }
+        try {
+          log.info("Fetching [{}]", remoteRes);
+          Files.copy(remoteRes.toURL().openStream(), target);
+          break;
+        } catch (Exception e) {
+          if (log.isDebugEnabled()) {
+            log.debug("Unable to resolve resource path [{}] - {}", remoteRes, e.getMessage());
+          }
+        }
+      }
+      throw new IllegalArgumentException(format(
+          "Resource path [%s] not found in any remote sources: %s",
+          resourcePath, remoteRoots
+      ));
+    } else if (log.isDebugEnabled()) { log.debug("Resolved [{}]", target); }
+    return target;
   }
 
   public MmPom loadPom(MmCoordinates c) {
