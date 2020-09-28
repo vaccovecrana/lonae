@@ -67,11 +67,13 @@ public class MmRepository {
     Path target = localRoot.resolve(resourcePath);
     if (!target.toFile().getParentFile().exists()) { target.toFile().getParentFile().mkdirs(); }
     if (!target.toFile().exists()) {
+      boolean found = false;
       for (URI remoteRoot : remoteRoots) {
         URI remoteRes = remoteRoot.resolve(resourcePath.toString());
         try {
           log.info("Fetching [{}]", remoteRes);
           Files.copy(remoteRes.toURL().openStream(), target);
+          found = true;
           break;
         } catch (Exception e) {
           if (log.isDebugEnabled()) {
@@ -79,10 +81,12 @@ public class MmRepository {
           }
         }
       }
-      throw new IllegalArgumentException(format(
-          "Resource path [%s] not found in any remote sources: %s",
-          resourcePath, remoteRoots
-      ));
+      if (!found) {
+        throw new IllegalArgumentException(format(
+            "Resource path [%s] not found in any remote sources: %s",
+            resourcePath, remoteRoots
+        ));
+      }
     } else if (log.isDebugEnabled()) { log.debug("Resolved [{}]", target); }
     return target;
   }
