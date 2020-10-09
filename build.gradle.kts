@@ -1,5 +1,5 @@
 plugins {
-  id("io.vacco.common-build") version "0.5.1"
+  id("io.vacco.common-build") version "0.5.3"
 }
 
 group = "io.vacco.lonae"
@@ -16,7 +16,7 @@ configure<JavaPluginExtension> {
   targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-configure<io.vacco.gradle.plugin.cphell.ChPluginExtension> {
+configure<io.vacco.cphell.ChPluginExtension> {
   resourceExclusions.add("module-info.class")
 }
 
@@ -28,4 +28,13 @@ dependencies {
   api("com.fasterxml.jackson.core:jackson-databind:2.11.2")
   api("io.vacco.oriax:oriax:0.1.0")
   testImplementation("io.vacco.shax:shax:1.7.30.0.0.6")
+}
+
+tasks.withType<Test> {
+  extensions.configure(JacocoTaskExtension::class) {
+    output = JacocoTaskExtension.Output.TCP_CLIENT
+    address = "localhost"
+    port = 6300
+    sessionId = "test"
+  }
 }
