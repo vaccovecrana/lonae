@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "io.vacco.lonae"
-version = "0.9.6"
+version = "0.9.8"
 
 configure<io.vacco.common.CbPluginProfileExtension> {
   addJ8Spec(); addPmd(); addSpotBugs(); addClasspathHell()
@@ -30,11 +30,13 @@ dependencies {
   testImplementation("io.vacco.shax:shax:1.7.30.0.0.6")
 }
 
+/*
 tasks.withType<Test> {
   extensions.configure(JacocoTaskExtension::class) {
     output = JacocoTaskExtension.Output.TCP_CLIENT
     address = "localhost"
     port = 6300
-    sessionId = "test"
+    sessionId = "lonae-manual@io.vacco.lonae:lonae:0.9.6"
   }
 }
+*/
