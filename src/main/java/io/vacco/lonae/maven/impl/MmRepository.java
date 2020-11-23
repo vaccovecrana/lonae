@@ -55,7 +55,7 @@ public class MmRepository {
   public MmArtifact artifactOf(MmCoordinates coordinates, MmComponent.Type type) {
     MmArtifact art = new MmArtifact();
     art.at = coordinates;
-    art.comp = defaultComps.get(type);
+    art.comp = defaultComps.get(type).copy();
     return art;
   }
 

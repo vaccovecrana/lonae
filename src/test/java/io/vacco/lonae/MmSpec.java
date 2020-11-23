@@ -63,7 +63,7 @@ public class MmSpec {
   static {
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_DEVMODE, "true");
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, "false");
-    ShOption.setSysProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, "trace");
+    ShOption.setSysProp(ShOption.IO_VACCO_SHAX_LOGLEVEL, "info");
 
     boolean n =new File("/tmp", "repo").mkdirs();
 

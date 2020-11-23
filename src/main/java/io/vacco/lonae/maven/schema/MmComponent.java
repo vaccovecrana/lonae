@@ -33,4 +33,15 @@ public class MmComponent {
         format(", incDep: %s", includesDependencies)
     );
   }
+
+  public MmComponent copy() {
+    MmComponent c0 = new MmComponent();
+    c0.addedToClasspath = this.addedToClasspath;
+    c0.classifier = this.classifier;
+    c0.includesDependencies = this.includesDependencies;
+    c0.language = this.language;
+    c0.packaging = this.packaging;
+    c0.type = this.type;
+    return c0;
+  }
 }
