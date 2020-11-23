@@ -103,12 +103,9 @@ public class MmSpec {
     });
 
     it("Can install resolved artifacts", () -> {
-      List<MmResolutionResult> jars = repo.installDefaultFrom(MmCoordinates.from("org.apache.spark:spark-core_2.12:2.4.0"));
-      log.info("{}", kv("jars", jars));
-      jars.forEach(jar -> log.info(jar.toString()));
-      List<MmResolutionResult> sources = repo.installFrom(MmCoordinates.from("org.apache.spark:spark-core_2.12:2.4.0"), "sources");
-      log.info("{}", kv("sources", sources));
-      sources.forEach(src -> log.info(src.toString()));
+      List<MmResolutionResult> jarAndSources = repo.installFrom(MmCoordinates.from("org.apache.spark:spark-core_2.12:2.4.0"), "", "sources");
+      log.info("{}", kv("jarAndSources", jarAndSources));
+      jarAndSources.forEach(jar -> log.info(jar.toString()));
     });
 
     describe(MmXform.class.getCanonicalName(), () -> {

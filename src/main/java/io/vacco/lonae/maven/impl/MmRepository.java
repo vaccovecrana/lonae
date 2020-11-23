@@ -19,7 +19,6 @@ public class MmRepository {
 
   private static final Logger log = LoggerFactory.getLogger(MmRepository.class);
   private static final URL compXml = MmRepository.class.getResource("/io/vacco/lonae/maven/artifact-handlers.xml");
-
   public static final Map<MmComponent.Type, MmComponent> defaultComps = MmXform.forComponents(compXml);
 
   public final Path localRoot;
@@ -55,7 +54,7 @@ public class MmRepository {
   public MmArtifact artifactOf(MmCoordinates coordinates, MmComponent.Type type) {
     MmArtifact art = new MmArtifact();
     art.at = coordinates;
-    art.comp = defaultComps.get(type).copy();
+    art.comp = defaultComps.get(type);
     return art;
   }
 
@@ -233,18 +232,19 @@ public class MmRepository {
     List<MmResolutionResult> out = new ArrayList<>();
     for (OxVtx<String, MmPom> vtx : buildPomGraph(root).vtx) {
       MmPom pom = vtx.data;
-      MmArtifact jar = artifactOf(pom.at, MmComponent.Type.jar); // Gradle's latest version wins strategy.
+      MmArtifact defaultArt = artifactOf(pom.at, MmComponent.Type.jar); // Gradle's latest version wins strategy.
       if (!pom.extraVersions.isEmpty()) {
         Set<MmArtifact> allArts = new TreeSet<>(pom.extraVersions);
-        allArts.add(jar);
-        jar = allArts.iterator().next();
+        allArts.add(defaultArt);
+        defaultArt = allArts.iterator().next();
       }
       for (String classifier : classifiers) {
+        MmArtifact classifiedArt = defaultArt.copy();
         try {
-          jar.comp.classifier = classifier;
-          out.add(MmResolutionResult.of(jar, resolveOrFetch(resourcePathOf(jar)), null));
+          classifiedArt.comp.classifier = classifier;
+          out.add(MmResolutionResult.of(classifiedArt, resolveOrFetch(resourcePathOf(classifiedArt)), null));
         } catch (Exception e) {
-          out.add(MmResolutionResult.of(jar, null, e));
+          out.add(MmResolutionResult.of(classifiedArt, null, e));
         }
       }
     }

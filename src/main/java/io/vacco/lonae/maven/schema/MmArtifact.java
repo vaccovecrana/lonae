@@ -11,7 +11,6 @@ public class MmArtifact implements Comparable<MmArtifact> {
   public MmCoordinates at;
   public MmComponent comp;
   public MmArtifactMeta meta;
-
   public MmArtifact upstream;
 
   public String baseArtifactName() {
@@ -32,6 +31,21 @@ public class MmArtifact implements Comparable<MmArtifact> {
   public MmArtifact withUpstream(MmArtifact upstream) {
     this.upstream = upstream;
     return this;
+  }
+
+  public MmArtifact copy() {
+    MmArtifact a0 = new MmArtifact();
+    a0.comp = new MmComponent();
+    a0.comp.type = this.comp.type;
+    a0.comp.packaging = this.comp.packaging;
+    a0.comp.language = this.comp.language;
+    a0.comp.includesDependencies = this.comp.includesDependencies;
+    a0.comp.classifier = this.comp.classifier;
+    a0.comp.addedToClasspath = this.comp.addedToClasspath;
+    a0.at = this.at;
+    a0.meta = this.meta;
+    a0.upstream = this.upstream;
+    return a0;
   }
 
   @Override public int compareTo(MmArtifact o) { return o.baseArtifactName().compareTo(baseArtifactName()); }

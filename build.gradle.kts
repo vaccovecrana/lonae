@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "io.vacco.lonae"
-version = "0.9.9"
+version = "0.9.8"
 
 configure<io.vacco.common.CbPluginProfileExtension> {
   addJ8Spec(); addPmd(); addSpotBugs(); addClasspathHell()
