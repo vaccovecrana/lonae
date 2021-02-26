@@ -29,14 +29,13 @@ dependencies {
   api("io.vacco.oriax:oriax:0.1.0")
   testImplementation("io.vacco.shax:shax:1.7.30.0.0.6")
 }
-
 /*
 tasks.withType<Test> {
   extensions.configure(JacocoTaskExtension::class) {
     output = JacocoTaskExtension.Output.TCP_CLIENT
     address = "localhost"
     port = 6300
-    sessionId = "lonae-manual@io.vacco.lonae:lonae:0.9.6"
+    sessionId = "loane-test@io.vacco.lonae:lonae:0.9.8"
   }
 }
 */
